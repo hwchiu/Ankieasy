@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys
 import json
+import importlib
 
 def handleProfile(data):
     print(data)
@@ -10,6 +11,10 @@ def handleProfile(data):
     print('media file :{}'.format(data['download_dir']))
     print('method :{}'.format(data['method']))
     print('addons:{}'.format(data['add_on'] if 'add_on' in data else 'Basic'))
+
+    dict_module = importlib.import_module('module.{}'.format(data['method'].lower()my_module))
+
+    dict_module.LookUp("QQ")
 
 def load_config(path):
     with open(path, encoding='utf-8') as data_file:
