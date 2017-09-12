@@ -1,0 +1,11 @@
+{
+    "profiles": [
+ 	 	{
+	        "file":"input",
+	        "deck":"novel",
+	        "collection":"/Users/hwchiu/Library/Application Support/Anki2/User 1/collection.anki2",
+            "download_dir":"/Users/hwchiu/Library/Application Support/Anki2/User 1/collection.media/",
+			"method":"English"
+	   	}
+    ]
+}
