@@ -3,6 +3,7 @@ import sys
 import json
 import importlib
 
+
 def handleProfile(data):
     print('words file:{}'.format(data['file']))
     print('deck file:{}'.format(data['deck']))
@@ -14,8 +15,7 @@ def handleProfile(data):
     dict_source = importlib.import_module('module.{}'.format(data['dict_source'].lower()))
     with open(data['file'], encoding='utf-8') as word_list:
         for word in word_list:
-            dict_source.LookUp(word)
-
+            dict_source.LookUp(word, data)
 
 def load_config(path):
     with open(path, encoding='utf-8') as data_file:
