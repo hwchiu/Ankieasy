@@ -5,7 +5,7 @@
 	        "deck":"novel",
 	        "collection":"/Users/hwchiu/Library/Application Support/Anki2/User 1/collection.anki2",
             "download_dir":"/Users/hwchiu/Library/Application Support/Anki2/User 1/collection.media/",
-			"method":"English_Yahoo"
+			"dict_source":"English_Yahoo"
 	   	}
     ]
 }

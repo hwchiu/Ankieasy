@@ -4,17 +4,18 @@ import json
 import importlib
 
 def handleProfile(data):
-    print(data)
     print('words file:{}'.format(data['file']))
     print('deck file:{}'.format(data['deck']))
     print('collection file:{}'.format(data['collection']))
     print('media file :{}'.format(data['download_dir']))
-    print('method :{}'.format(data['method']))
+    print('dict_source :{}'.format(data['dict_source']))
     print('addons:{}'.format(data['add_on'] if 'add_on' in data else 'Basic'))
 
-    dict_module = importlib.import_module('module.{}'.format(data['method'].lower()my_module))
+    dict_source = importlib.import_module('module.{}'.format(data['dict_source'].lower()))
+    with open(data['file'], encoding='utf-8') as word_list:
+        for word in word_list:
+            dict_source.LookUp(word)
 
-    dict_module.LookUp("QQ")
 
 def load_config(path):
     with open(path, encoding='utf-8') as data_file:
