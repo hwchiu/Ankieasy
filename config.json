@@ -2,10 +2,11 @@
     "profiles": [
  	 	{
 	        "file":"input",
-	        "deck":"novel",
+	        "deck":"test",
 	        "collection":"/Users/hwchiu/Library/Application Support/Anki2/User 1/collection.anki2",
             "download_dir":".",
-			"dict_source":"English_Yahoo"
+			"dict_source":"English_Yahoo",
+			"card_type":"basic_reverse"
 	   	}
     ]
 }
