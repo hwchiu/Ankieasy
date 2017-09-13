@@ -74,7 +74,7 @@ def LookUp(word, data):
         for j in POScont[i].find_all('h4'):
             back_word += j.get_text() + '<br>'
     print("")
-    result['front'] = front_word
-    result['back'] = back_word
+    result['front_word'] = front_word
+    result['back_word'] = back_word
 
     return result
