@@ -14,9 +14,13 @@ def LookUp(word, data):
     url="https://tw.dictionary.search.yahoo.com/search?p={}".format(wordUrl)
     content = urllib.request.urlopen(url).read()
     soup = BeautifulSoup(content, 'lxml')
+    result = {}
     front_word = ""
     back_word = ""
-    Download_dir = data['download_dir']
+    download_dir = ""
+
+    if "download_dir" in data:
+        download_dir = data['download_dir']
 
     if word == "":
         return False
@@ -36,12 +40,12 @@ def LookUp(word, data):
     print(" ")
 # Get the URL of the sound media
     soup_result = soup.find('span', id='iconStyle')
-    if soup_result is not None:
+    if soup_result is not None and download_dir != "":
         sound = json.loads(soup_result.get_text())
         # Download the sound media and store at the specific directory (%username%/collection.media) and with a specific file name (Py_%word%.mp3)
         for soundCnt in range(0,len(sound['sound_url_1'])):
             if bool(sound['sound_url_1'][soundCnt]) == True :
-                wget.download(sound['sound_url_1'][soundCnt]["mp3"], out=Download_dir+"Py_"+word+".mp3")
+                wget.download(sound['sound_url_1'][soundCnt]["mp3"], out=download_dir+"Py_"+word+".mp3")
                 front_word += "[sound:Py_"+word+".mp3]"
                 break
     # Insert the sound media into the card
@@ -70,8 +74,7 @@ def LookUp(word, data):
         for j in POScont[i].find_all('h4'):
             back_word += j.get_text() + '<br>'
     print("")
-    print('front_card={}'.format(front_word))
-    print('back_card={}'.format(back_word))
+    result['front'] = front_word
+    result['back'] = back_word
 
-    if 0 == len(back_word):
-        return False
+    return result

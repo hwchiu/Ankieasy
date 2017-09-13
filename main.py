@@ -10,12 +10,12 @@ def handleProfile(data):
     print('collection file:{}'.format(data['collection']))
     print('media file :{}'.format(data['download_dir']))
     print('dict_source :{}'.format(data['dict_source']))
-    print('addons:{}'.format(data['add_on'] if 'add_on' in data else 'Basic'))
+    print('card_type:{}'.format(data['card_type'] if 'card_type' in data else 'Basic'))
 
     dict_source = importlib.import_module('module.{}'.format(data['dict_source'].lower()))
     with open(data['file'], encoding='utf-8') as word_list:
         for word in word_list:
-            dict_source.LookUp(word, data)
+            print(dict_source.LookUp(word, data))
 
 def load_config(path):
     with open(path, encoding='utf-8') as data_file:
