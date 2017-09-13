@@ -42,6 +42,10 @@ def handleProfile(data):
         for word in word_list:
             result = dict_source.LookUp(word, data)
             card_data = card_type.MakeCard(result)
+
+            if 0 == len(card_data):
+                continue
+
             card = deck.newNote()
             for key in card_data:
                 card[key] = card_data[key]
