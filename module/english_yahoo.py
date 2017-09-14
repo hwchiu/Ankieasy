@@ -23,11 +23,11 @@ def LookUp(word, data):
         download_dir = data['download_dir']
 
     if word == "":
-        return False
+        return None
 
     wrongSpelling = soup.find('div', class_='compText mb-15 fz-m fc-4th')
     if wrongSpelling is not None:
-        return False
+        return None
 
 
     # If there is a typo, maybe the Yahoo dict will detect
