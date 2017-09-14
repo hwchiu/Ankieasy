@@ -1,12 +1,21 @@
 {
     "profiles": [
  	 	{
-	        "file":"input",
-	        "deck":"test",
+	        "file":"input_J",
+	        "deck":"test2",
 	        "collection":"/Users/hwchiu/Library/Application Support/Anki2/User 1/collection.anki2",
-            "download_dir":".",
+            "download_dir":"/Users/hwchiu/Library/Application Support/Anki2/User 1/collection.media/",
+			"dict_source":"japanese",
+			"card_type":"japanse_recognition_recall"
+	   	},
+ 	 	{
+	        "file":"input",
+	        "deck":"test2",
+	        "collection":"/Users/hwchiu/Library/Application Support/Anki2/User 1/collection.anki2",
+            "download_dir":"/Users/hwchiu/Library/Application Support/Anki2/User 1/collection.media/",
 			"dict_source":"English_Yahoo",
 			"card_type":"basic_reverse"
 	   	}
+
     ]
 }
