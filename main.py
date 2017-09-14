@@ -28,9 +28,11 @@ def handleProfile(data):
     print('dict_source :{}'.format(data['dict_source']))
     print('card_type:{}'.format(data['card_type'] if 'card_type' in data else 'Basic'))
 
-    if 'file' not in data:
+
+    if 'file' not in data or not os.path.exists(data['file']):
         print("No input file, Exit")
         return
+
     input_file = "{}/{}".format(os.getcwd(), data['file'])
 
     card_type = data['card_type'] if 'card_type' in data else 'basic'
