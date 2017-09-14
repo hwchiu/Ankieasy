@@ -33,7 +33,7 @@ def handleProfile(data):
         return
     input_file = "{}/{}".format(os.getcwd(), data['file'])
 
-    card_type = data['card_type'] if 'card_type' is data else 'basic'
+    card_type = data['card_type'] if 'card_type' in data else 'basic'
 
     dict_source = importlib.import_module('module.{}'.format(data['dict_source'].lower()))
     card_type = importlib.import_module('cardtype.{}'.format(card_type))
@@ -45,7 +45,6 @@ def handleProfile(data):
 
             if 0 == len(card_data):
                 continue
-
             card = deck.newNote()
             for key in card_data:
                 card[key] = card_data[key]
