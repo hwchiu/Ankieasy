@@ -7,10 +7,10 @@ You only prepare the words you want to learn and modify the config file and Anki
 Usage
 =====
 1. Install anki application and python3
-2. python3 setup.py install
+2. python3 setup.py install ("python setup.py install" for Windows user)
 3. Modify the config.json (see below to know more infomation)
 4. Close anki application (avoid database lock)
-5. python3 main.py
+5. python3 main.py ("python main.py" for Windows user)
 6. Open anki and check your deck.
 
 Config

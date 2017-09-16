@@ -35,7 +35,7 @@ def LookUp(word, data):
     if "download_dir" in data:
         download_dir = data['download_dir']
 
-    print("-------------------------------------------------------------")
+    print(" ")
     print('<<'+word+'>>')
     print(" ")
 
@@ -60,7 +60,6 @@ def LookUp(word, data):
                 furiChild.append(child.string)
                 furiCnt = furiCnt + 1
             furiList = list(filter(("\n").__ne__, furiChild))
-            print("furiList = ",furiList)
         for j in partJP.find_all('span', class_='text'):
             textCnt = 0
             for child in j.children:
@@ -70,7 +69,6 @@ def LookUp(word, data):
                 for chr in _unicode_chr_splitter( textChild[k] ):
                     if chr != '\n' and chr != ' ' and chr != '':
                         textList.append(chr)
-            print("textList = ",textList)
         
         for j in range(0,len(textList)):
             if(furiList[j] == None):
