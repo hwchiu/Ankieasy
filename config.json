@@ -2,17 +2,17 @@
     "profiles": [
  	 	{
 	        "file":"input_J",
-	        "deck":"test2",
-	        "collection":"/Users/hwchiu/Library/Application Support/Anki2/User 1/collection.anki2",
-            "download_dir":"/Users/hwchiu/Library/Application Support/Anki2/User 1/collection.media/",
-			"dict_source":"japanese",
+	        "deck":"日文",
+	        "collection":"C:/Users/Yu-Hsien/AppData/Roaming/Anki2/YuHsien/collection.anki2",
+            "download_dir":"C:/Users/Yu-Hsien/AppData/Roaming/Anki2/YuHsien/collection.media/",
+			"dict_source":"japanese_jisho",
 			"card_type":"japanse_recognition_recall"
 	   	},
  	 	{
 	        "file":"input",
-	        "deck":"test2",
-	        "collection":"/Users/hwchiu/Library/Application Support/Anki2/User 1/collection.anki2",
-            "download_dir":"/Users/hwchiu/Library/Application Support/Anki2/User 1/collection.media/",
+	        "deck":"英文",
+	        "collection":"C:/Users/Yu-Hsien/AppData/Roaming/Anki2/YuHsien/collection.anki2",
+            "download_dir":"C:/Users/Yu-Hsien/AppData/Roaming/Anki2/YuHsien/collection.media/",
 			"dict_source":"English_Yahoo",
 			"card_type":"basic_reverse"
 	   	}
