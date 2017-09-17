@@ -34,7 +34,14 @@ def LookUp(word, data):
 
     if "download_dir" in data:
         download_dir = data['download_dir']
-
+        
+    if word == "":
+        return None
+        
+    wrongSpelling = soup.find('div', id='no-matches')
+    if wrongSpelling is not None:
+        return None
+    
     print(" ")
     print('<<'+word+'>>')
     print(" ")
