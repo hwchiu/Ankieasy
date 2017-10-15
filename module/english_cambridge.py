@@ -43,9 +43,9 @@ def LookUp(word, data):
             english = tabEntry.find('div', class_='tabs__content on', attrs={"data-tab": "ds-business-english"})
 
     partOfSpeech = english.find_all('div', class_='entry-body__el clrd js-share-holder')
-    sound = partOfSpeech[0].find('span', attrs={'data-src-mp3':True})['data-src-mp3']
+    sound = partOfSpeech[0].find('span', attrs={'data-src-mp3':True})
     if(sound is not None):
-        wget.download(sound, out=download_dir+"Py_"+word+".mp3")
+        wget.download(sound['data-src-mp3'], out=download_dir+"Py_"+word+".mp3")
         front_word = "[sound:Py_"+word+".mp3]" + front_word
     for i in range(0,len(partOfSpeech)):
         posgram = partOfSpeech[i].find('span', class_='posgram ico-bg')
@@ -82,8 +82,8 @@ def LookUp(word, data):
 
     result['front_word'] = front_word
     result['back_word'] = back_word
-    # print('<<<'+word+'>>>'+'\n')
-    # print('front_word = '+'\n'+front_word)
-    # print('back_word = '+'\n'+back_word)
-    # print('-----------------------------------------')
+    print('<<<'+word+'>>>'+'\n')
+    print('front_word = '+'\n'+front_word)
+    print('back_word = '+'\n'+back_word)
+    print('-----------------------------------------')
     return result
