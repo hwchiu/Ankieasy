@@ -30,11 +30,11 @@ def LookUp(word, data):
         download_dir = data['download_dir']
 
     if word == "":
-        return False
+        return None
 
     tabEntry = soup.find('div', class_='tabs tabs-entry js-tabs-wrap js-toc')
     if(tabEntry is None):
-        return False
+        return None
 
     english = tabEntry.find('div', class_='tabs__content on', attrs={"data-tab": "ds-american-english"})
     if(english is None):
