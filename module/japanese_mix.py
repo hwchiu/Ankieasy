@@ -1,5 +1,6 @@
 import urllib.request
 from urllib.parse import quote
+from urllib.request import Request, urlopen
 from bs4 import BeautifulSoup
 import subprocess
 import platform
@@ -7,7 +8,7 @@ import datetime
 import json
 import wget
 import re
-import hanziconv # https://pypi.python.org/pypi/hanziconv/0.2.1
+from hanziconv import HanziConv # https://pypi.python.org/pypi/hanziconv/0.2.1
 from re import compile as _Re
 
 _unicode_chr_splitter = _Re( '(?s)((?:[\u2e80-\u9fff])|.)' ).split
@@ -36,7 +37,8 @@ def LookUp(word, data):
     jisho_Soup = BeautifulSoup(jisho_Content, 'lxml')
 
     hj_Url = "https://dict.hjenglish.com/jp/jc/{}".format(wordUrl)
-    hj_Content = urllib.request.urlopen(hj_Url).read()
+    req = Request(hj_Url, headers={'User-Agent': 'Mozilla/5.0'})
+    hj_Content = urllib.request.urlopen(req).read()
     hj_Soup = BeautifulSoup(hj_Content, 'lxml')
 
 
@@ -61,7 +63,7 @@ def LookUp(word, data):
         partJP = firstBlock.find('div', class_='concept_light-wrapper')
         partEN = firstBlock.find('div', class_='concept_light-meanings')
         status = partJP.find('div', class_='concept_light-status')
-        if(status != None):
+        if status != None:
             audio = status.find('audio')
             if audio != None and download_dir != "":
                 source = audio.find('source')
@@ -74,37 +76,46 @@ def LookUp(word, data):
             furiCnt = 0
             for child in j.children:
                 furiChild.append(child.string)
-                furiCnt = furiCnt + 1
+                furiCnt += 1
             furiList = list(filter(("\n").__ne__, furiChild))
         for j in partJP.find_all('span', class_='text'):
             textCnt = 0
             for child in j.children:
                 textChild.append(child.string)
-                textCnt = textCnt + 1
+                textCnt += 1
             for k in range(0,len(textChild)):
                 for chr in _unicode_chr_splitter( textChild[k] ):
                     if chr != '\n' and chr != ' ' and chr != '':
                         textList.append(chr)
         
         for j in range(0,len(textList)):
-            if(furiList[j] == None):
+            if furiList[j] == None:
                 reading += textList[j] 
             else:
                 reading += " " + textList[j] + "[" + furiList[j] + "]" 
-        # for j in partEN.find_all('div', class_="meanings-wrapper"):
-        #     for k in j.find_all('div', class_="meaning-wrapper"):
-        #         cnt = cnt + 1
-        #         back_word += str(cnt) + '. '
-        #         for q in k.find_all('span', class_="meaning-meaning"):
-        #             back_word += q.get_text() + '<br>'
 
     wrapper = hj_Soup.find('div', id='wrapper')
     mainBlock = wrapper.find('div', id='main')
     mainContainer = mainBlock.find('div', class_='mian_container main_container')
     wordBlock = mainContainer.find('div', id='headword_jp_1', class_='jp_word_comment')
-    meaning = wordBlock.find('div', class_='word_ext_con clearfix')
+    wordExt = wordBlock.find('div', class_='word_ext_con clearfix')
+
+    partOfSpeech = wordExt.find_all('div', class_='flag big_type tip_content_item')
+    posMeaningBlock = wordExt.find_all('ul', class_='tip_content_item jp_definition_com')
+    for i in range(0,len(posMeaningBlock)):
+        front_word += partOfSpeech[i]['title'] + '<br>'
+        back_word += partOfSpeech[i]['title'] + '<br>'
+        posMeaning = posMeaningBlock[i].find_all('li', class_='flag')
+        meaningCnt = 1
+        for j in range(0,len(posMeaning)):
+            meaning = posMeaning[j].find('span', class_='word_comment soundmark_color')
+            if meaning == None:
+                meaning = posMeaning[j].find('span', class_='jp_explain soundmark_color')
+            back_word += str(meaningCnt) + '. ' + meaning.get_text() + '<br>'
+            meaningCnt += 1
 
     result['read_word'] = reading
     result['front_word'] = front_word
-    result['back_word'] = back_word
+    result['back_word'] = HanziConv.toTraditional(back_word)
+
     return result
