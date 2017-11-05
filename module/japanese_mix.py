@@ -27,6 +27,7 @@ def LookUp(word, data):
     reading = ""
     cnt = 0
     download_dir = ""
+    needHJSound = False
 
     # Eliminate the end of line delimiter
     word = word.splitlines()[0]
@@ -40,8 +41,6 @@ def LookUp(word, data):
     req = Request(hj_Url, headers={'User-Agent': 'Mozilla/5.0'})
     hj_Content = urllib.request.urlopen(req).read()
     hj_Soup = BeautifulSoup(hj_Content, 'lxml')
-
-
 
     if "download_dir" in data:
         download_dir = data['download_dir']
@@ -70,8 +69,11 @@ def LookUp(word, data):
                 wget.download(source['src'], out=download_dir+"Jp_"+word+".mp3")
                 # Insert the sound media into the card
                 front_word += "[sound:Jp_"+word+".mp3]"
-        front_word += word + "<br>"
-        
+            else:
+                needHJSound = True
+        else:
+            needHJSound = True
+
         for j in partJP.find_all('span', class_='furigana'):
             furiCnt = 0
             for child in j.children:
@@ -99,12 +101,29 @@ def LookUp(word, data):
     mainContainer = mainBlock.find('div', class_='mian_container main_container')
     wordBlock = mainContainer.find('div', id='headword_jp_1', class_='jp_word_comment')
     wordExt = wordBlock.find('div', class_='word_ext_con clearfix')
+    
+    #         // This apart is not complete yet
+    
+    # if needHJSound:
+    #     mt10 = wordBlock.find('div', class_='mt10')
+    #     jpSound = mt10.find('span', class_='jpSound')
+    #     if jpSound != None:
+    #         hjSound = jpSound.find('script').get_text()
+    #         hjSound = hjSound.replace('GetTTSVoice("','')
+    #         hjSound = hjSound.replace('")','')
+    #         wget.download(hjSound, out=download_dir+"Jp_"+word+".mp3")
+    #         front_word += "[sound:Jp_"+word+".mp3]"
+
+    #         // This apart is not complete yet
+    
+    front_word += word + "<br>"
 
     partOfSpeech = wordExt.find_all('div', class_='flag big_type tip_content_item')
     posMeaningBlock = wordExt.find_all('ul', class_='tip_content_item jp_definition_com')
     for i in range(0,len(posMeaningBlock)):
-        front_word += partOfSpeech[i]['title'] + '<br>'
-        back_word += partOfSpeech[i]['title'] + '<br>'
+        if len(partOfSpeech) != 0:
+            front_word += '(' + HanziConv.toTraditional(partOfSpeech[i]['title']) + ')' + '<br>'
+            back_word  += '(' + HanziConv.toTraditional(partOfSpeech[i]['title']) + ')' + '<br>'
         posMeaning = posMeaningBlock[i].find_all('li', class_='flag')
         meaningCnt = 1
         for j in range(0,len(posMeaning)):
