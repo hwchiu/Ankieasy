@@ -66,7 +66,7 @@ def LookUp(word, data):
             audio = status.find('audio')
             if audio != None and download_dir != "":
                 source = audio.find('source')
-                wget.download(source['src'], out=download_dir+"Jp_"+word+".mp3")
+                wget.download('http:'+source['src'], out=download_dir+"Jp_"+word+".mp3")
                 # Insert the sound media into the card
                 front_word += "[sound:Jp_"+word+".mp3]"
             else:
@@ -116,7 +116,11 @@ def LookUp(word, data):
 
     #         // This apart is not complete yet
     
-    front_word += word + "<br>"
+
+    for i in range(0,len(textList)):
+        front_word += textList[i]
+    
+    front_word += "<br>"
 
     partOfSpeech = wordExt.find_all('div', class_='flag big_type tip_content_item')
     posMeaningBlock = wordExt.find_all('ul', class_='tip_content_item jp_definition_com')
