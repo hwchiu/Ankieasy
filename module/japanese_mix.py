@@ -66,9 +66,10 @@ def LookUp(word, data):
             audio = status.find('audio')
             if audio != None and download_dir != "":
                 source = audio.find('source')
-                wget.download('http:'+source['src'], out=download_dir+"Jp_"+word+".mp3")
-                # Insert the sound media into the card
-                front_word += "[sound:Jp_"+word+".mp3]"
+                if source != None and source['src'] != None:
+                    wget.download('http:'+source['src'], out=download_dir+"Jp_"+word+".mp3")
+                    # Insert the sound media into the card
+                    front_word += "[sound:Jp_"+word+".mp3]"
             else:
                 needHJSound = True
         else:
