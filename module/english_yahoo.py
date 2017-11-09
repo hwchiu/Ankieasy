@@ -42,12 +42,13 @@ def LookUp(word, data):
     soup_result = soup.find('span', id='iconStyle')
     if soup_result is not None and download_dir != "":
         sound = json.loads(soup_result.get_text())
-        # Download the sound media and store at the specific directory (%username%/collection.media) and with a specific file name (Py_%word%.mp3)
-        for soundCnt in range(0,len(sound['sound_url_1'])):
-            if bool(sound['sound_url_1'][soundCnt]) == True :
-                wget.download(sound['sound_url_1'][soundCnt]["mp3"], out=download_dir+"Py_"+word+".mp3")
-                front_word += "[sound:Py_"+word+".mp3]"
-                break
+        if sound is not None and sound['sound_url_1'] is not None:
+            # Download the sound media and store at the specific directory (%username%/collection.media) and with a specific file name (Py_%word%.mp3)
+            for soundCnt in range(0,len(sound['sound_url_1'])):
+                if bool(sound['sound_url_1'][soundCnt]) == True :
+                    wget.download(sound['sound_url_1'][soundCnt]["mp3"], out=download_dir+"Py_"+word+".mp3")
+                    front_word += "[sound:Py_"+word+".mp3]"
+                    break
     # Insert the sound media into the card
     front_word += word + "<br>"
 

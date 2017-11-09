@@ -30,11 +30,11 @@ def LookUp(word, data):
         download_dir = data['download_dir']
 
     if word == "":
-        return False
+        return None
 
     tabEntry = soup.find('div', class_='tabs tabs-entry js-tabs-wrap js-toc')
     if(tabEntry is None):
-        return False
+        return None
 
     english = tabEntry.find('div', class_='tabs__content on', attrs={"data-tab": "ds-american-english"})
     if(english is None):
@@ -44,7 +44,8 @@ def LookUp(word, data):
 
     partOfSpeech = english.find_all('div', class_='entry-body__el clrd js-share-holder')
     sound = partOfSpeech[0].find('span', attrs={'data-src-mp3':True})
-    if(sound is not None):
+
+    if(sound is not None and sound['data-src-mp3'] is not None):
         wget.download(sound['data-src-mp3'], out=download_dir+"Py_"+word+".mp3")
         front_word = "[sound:Py_"+word+".mp3]" + front_word
     for i in range(0,len(partOfSpeech)):

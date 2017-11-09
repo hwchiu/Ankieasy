@@ -56,7 +56,7 @@ def LookUp(word, data):
             audio = status.find('audio')
             if audio != None and download_dir != "":
                 source = audio.find('source')
-                wget.download(source['src'], out=download_dir+"Jp_"+word+".mp3")
+                wget.download('http:'+source['src'], out=download_dir+"Jp_"+word+".mp3")
                 # Insert the sound media into the card
                 front_word += "[sound:Jp_"+word+".mp3]"
         front_word += word + "<br>"
