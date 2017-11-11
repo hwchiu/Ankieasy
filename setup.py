@@ -7,7 +7,7 @@ requirements = [
 	'pyaudio',
 	'wget',
 	'pypiwin32',
-	'hanziconv'
+	'hanziconv',
 	]
 
 setup(
