@@ -1,0 +1,7 @@
+bs4
+lxml
+decorator
+pyaudio
+wget
+pypiwin32
+hanziconv
