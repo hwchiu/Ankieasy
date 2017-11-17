@@ -91,11 +91,17 @@ def LookUp(word, data):
                     if chr != '\n' and chr != ' ' and chr != '':
                         textList.append(chr)
         
-        for j in range(0,len(textList)):
-            if furiList[j] == None:
-                reading += textList[j] 
-            else:
-                reading += " " + textList[j] + "[" + furiList[j] + "]" 
+        if len(furiList) == 1 and furiList[0] == None:
+            furiganaOnce = partJP.find('span', class_='furigana')
+            furiganaJustify = furiganaOnce.find('ruby', class_='furigana-justify')
+            reading += furiganaJustify.find('rb').get_text()
+            reading += '[' + furiganaJustify.find('rt').get_text() + ']'
+        else:
+            for j in range(0,len(textList)):
+                if furiList[j] == None:
+                    reading += textList[j] 
+                else:
+                    reading += " " + textList[j] + "[" + furiList[j] + "]" 
 
     wrapper = hj_Soup.find('div', id='wrapper')
     mainBlock = wrapper.find('div', id='main')
