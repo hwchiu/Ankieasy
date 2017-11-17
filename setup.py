@@ -6,7 +6,8 @@ requirements = [
 	'decorator',
 	'pyaudio',
 	'wget',
-	'hanziconv'
+	'pypiwin32',
+	'hanziconv',
 	]
 
 setup(
