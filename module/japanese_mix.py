@@ -132,7 +132,7 @@ def LookUp(word, data):
     partOfSpeech = wordExt.find_all('div', class_='flag big_type tip_content_item')
     posMeaningBlock = wordExt.find_all('ul', class_='tip_content_item jp_definition_com')
     for i in range(0,len(posMeaningBlock)):
-        if len(partOfSpeech) != 0:
+        if len(partOfSpeech) >= i+1:
             front_word += '(' + HanziConv.toTraditional(partOfSpeech[i]['title']) + ')' + '<br>'
             back_word  += '(' + HanziConv.toTraditional(partOfSpeech[i]['title']) + ')' + '<br>'
         posMeaning = posMeaningBlock[i].find_all('li', class_='flag')
