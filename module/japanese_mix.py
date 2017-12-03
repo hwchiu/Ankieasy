@@ -103,47 +103,52 @@ def LookUp(word, data):
                 else:
                     reading += " " + textList[j] + "[" + furiList[j] + "]" 
 
+    for i in range(0,len(textList)):
+        front_word += textList[i]
+    front_word += "<br>"
+
     wrapper = hj_Soup.find('div', id='wrapper')
     mainBlock = wrapper.find('div', id='main')
     mainContainer = mainBlock.find('div', class_='mian_container main_container')
-    wordBlock = mainContainer.find('div', id='headword_jp_1', class_='jp_word_comment')
-    wordExt = wordBlock.find('div', class_='word_ext_con clearfix')
     
-    #         // This apart is not complete yet
-    
-    # if needHJSound:
-    #     mt10 = wordBlock.find('div', class_='mt10')
-    #     jpSound = mt10.find('span', class_='jpSound')
-    #     if jpSound != None:
-    #         hjSound = jpSound.find('script').get_text()
-    #         hjSound = hjSound.replace('GetTTSVoice("','')
-    #         hjSound = hjSound.replace('")','')
-    #         wget.download(hjSound, out=download_dir+"Jp_"+word+".mp3")
-    #         front_word += "[sound:Jp_"+word+".mp3]"
+    headwordJpCnt = 1
+    headwordJpStr = 'headword_jp_' + str(headwordJpCnt)
+    while mainContainer.find('div', id=headwordJpStr, class_='jp_word_comment') != None:
+        wordBlock = mainContainer.find('div', id=headwordJpStr, class_='jp_word_comment')
+        wordExt = wordBlock.find('div', class_='word_ext_con clearfix')
+        
+        #         // This apart is not complete yet
+        
+        # if needHJSound:
+        #     mt10 = wordBlock.find('div', class_='mt10')
+        #     jpSound = mt10.find('span', class_='jpSound')
+        #     if jpSound != None:
+        #         hjSound = jpSound.find('script').get_text()
+        #         hjSound = hjSound.replace('GetTTSVoice("','')
+        #         hjSound = hjSound.replace('")','')
+        #         wget.download(hjSound, out=download_dir+"Jp_"+word+".mp3")
+        #         front_word += "[sound:Jp_"+word+".mp3]"
 
-    #         // This apart is not complete yet
-    
+        #         // This apart is not complete yet
 
-    for i in range(0,len(textList)):
-        front_word += textList[i]
-    
-    front_word += "<br>"
+        partOfSpeech = wordExt.find_all('div', class_='flag big_type tip_content_item')
+        posMeaningBlock = wordExt.find_all('ul', class_='tip_content_item jp_definition_com')
+        for i in range(0,len(posMeaningBlock)):
+            if len(partOfSpeech) >= i+1:
+                front_word += '(' + HanziConv.toTraditional(partOfSpeech[i]['title']) + ')' + '<br>'
+                back_word  += '(' + HanziConv.toTraditional(partOfSpeech[i]['title']) + ')' + '<br>'
+            posMeaning = posMeaningBlock[i].find_all('li', class_='flag')
+            meaningCnt = 1
+            for j in range(0,len(posMeaning)):
+                meaning = posMeaning[j].find('span', class_='word_comment soundmark_color')
+                if meaning == None:
+                    meaning = posMeaning[j].find('span', class_='jp_explain soundmark_color')
+                back_word += str(meaningCnt) + '. ' + meaning.get_text() + '<br>'
+                meaningCnt += 1
 
-    partOfSpeech = wordExt.find_all('div', class_='flag big_type tip_content_item')
-    posMeaningBlock = wordExt.find_all('ul', class_='tip_content_item jp_definition_com')
-    for i in range(0,len(posMeaningBlock)):
-        if len(partOfSpeech) != 0:
-            front_word += '(' + HanziConv.toTraditional(partOfSpeech[i]['title']) + ')' + '<br>'
-            back_word  += '(' + HanziConv.toTraditional(partOfSpeech[i]['title']) + ')' + '<br>'
-        posMeaning = posMeaningBlock[i].find_all('li', class_='flag')
-        meaningCnt = 1
-        for j in range(0,len(posMeaning)):
-            meaning = posMeaning[j].find('span', class_='word_comment soundmark_color')
-            if meaning == None:
-                meaning = posMeaning[j].find('span', class_='jp_explain soundmark_color')
-            back_word += str(meaningCnt) + '. ' + meaning.get_text() + '<br>'
-            meaningCnt += 1
-
+        headwordJpCnt += 1
+        headwordJpStr = 'headword_jp_' + str(headwordJpCnt)
+        
     result['read_word'] = reading
     result['front_word'] = front_word
     result['back_word'] = HanziConv.toTraditional(back_word)

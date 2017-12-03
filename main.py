@@ -15,9 +15,10 @@ def initAnkiModule(data, card_type):
 
     deck.decks.select(deckId)
     model = deck.models.byName(card_type.GetCardType(deck.models))
-    model['did'] = deckId
-    deck.models.save(model)
-    deck.models.setCurrent(model)
+    if model is not None:
+        model['did'] = deckId
+        deck.models.save(model)
+        deck.models.setCurrent(model)
     return deck
 
 def handleProfile(data):
