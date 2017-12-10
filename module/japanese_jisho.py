@@ -61,27 +61,36 @@ def LookUp(word, data):
                 front_word += "[sound:Jp_"+word+".mp3]"
         front_word += word + "<br>"
         
-        for j in partJP.find_all('span', class_='furigana'):
-            furiCnt=0
-            for child in j.children:
+        furiBlock = partJP.find('span', class_='furigana')
+        rubyBlock = furiBlock.find('ruby', class_='furigana-justify')
+        if rubyBlock is not None:
+            furiList = rubyBlock.find('rt').get_text()
+        else:
+            furiCnt = 0
+            for child in furiBlock.children:
                 furiChild.append(child.string)
-                furiCnt = furiCnt + 1
+                furiCnt += 1
             furiList = list(filter(("\n").__ne__, furiChild))
-        for j in partJP.find_all('span', class_='text'):
-            textCnt = 0
-            for child in j.children:
-                textChild.append(child.string)
-                textCnt = textCnt + 1
-            for k in range(0,len(textChild)):
-                for chr in _unicode_chr_splitter( textChild[k] ):
-                    if chr != '\n' and chr != ' ' and chr != '':
-                        textList.append(chr)
+
+        textBlock = partJP.find('span', class_='text')
+        textCnt = 0
+        for child in textBlock.children:
+            textChild.append(child.string)
+            textCnt += 1
+        for k in range(0, len(textChild)):
+            for chr in _unicode_chr_splitter( textChild[k] ):
+                if chr != '\n' and chr != ' ' and chr != '':
+                    textList.append(chr)
         
-        for j in range(0,len(textList)):
-            if(furiList[j] == None):
-                reading += textList[j] 
-            else:
-                reading += " " + textList[j] + "[" + furiList[j] + "]" 
+        if len(furiList) != len(textList):
+            reading = ''
+        else:
+            for j in range(0, len(textList)):
+                if furiList[j] == None:
+                    reading += textList[j] 
+                else:
+                    reading += " " + textList[j] + "[" + furiList[j] + "]" 
+                    
         for j in partEN.find_all('div', class_="meanings-wrapper"):
             for k in j.find_all('div', class_="meaning-wrapper"):
                 cnt = cnt + 1
