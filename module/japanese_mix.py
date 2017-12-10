@@ -57,7 +57,6 @@ def LookUp(word, data):
     print(" ")
 
     for i in jisho_Soup.find_all('div', class_='exact_block'):
-
         firstBlock = i.find('div', class_='concept_light clearfix')
         partJP = firstBlock.find('div', class_='concept_light-wrapper')
         partEN = firstBlock.find('div', class_='concept_light-meanings')
@@ -75,35 +74,37 @@ def LookUp(word, data):
         else:
             needHJSound = True
 
-        for j in partJP.find_all('span', class_='furigana'):
+        furiBlock = partJP.find('span', class_='furigana')
+        rubyBlock = furiBlock.find('ruby', class_='furigana-justify')
+        if rubyBlock is not None:
+            furiList = rubyBlock.find('rt').get_text()
+        else:
             furiCnt = 0
-            for child in j.children:
+            for child in furiBlock.children:
                 furiChild.append(child.string)
                 furiCnt += 1
             furiList = list(filter(("\n").__ne__, furiChild))
-        for j in partJP.find_all('span', class_='text'):
-            textCnt = 0
-            for child in j.children:
-                textChild.append(child.string)
-                textCnt += 1
-            for k in range(0,len(textChild)):
-                for chr in _unicode_chr_splitter( textChild[k] ):
-                    if chr != '\n' and chr != ' ' and chr != '':
-                        textList.append(chr)
+
+        textBlock = partJP.find('span', class_='text')
+        textCnt = 0
+        for child in textBlock.children:
+            textChild.append(child.string)
+            textCnt += 1
+        for k in range(0, len(textChild)):
+            for chr in _unicode_chr_splitter( textChild[k] ):
+                if chr != '\n' and chr != ' ' and chr != '':
+                    textList.append(chr)
         
-        if len(furiList) == 1 and furiList[0] == None:
-            furiganaOnce = partJP.find('span', class_='furigana')
-            furiganaJustify = furiganaOnce.find('ruby', class_='furigana-justify')
-            reading += furiganaJustify.find('rb').get_text()
-            reading += '[' + furiganaJustify.find('rt').get_text() + ']'
+        if len(furiList) != len(textList):
+            reading = ''
         else:
-            for j in range(0,len(textList)):
+            for j in range(0, len(textList)):
                 if furiList[j] == None:
                     reading += textList[j] 
                 else:
                     reading += " " + textList[j] + "[" + furiList[j] + "]" 
 
-    for i in range(0,len(textList)):
+    for i in range(0, len(textList)):
         front_word += textList[i]
     front_word += "<br>"
 
@@ -133,13 +134,13 @@ def LookUp(word, data):
 
         partOfSpeech = wordExt.find_all('div', class_='flag big_type tip_content_item')
         posMeaningBlock = wordExt.find_all('ul', class_='tip_content_item jp_definition_com')
-        for i in range(0,len(posMeaningBlock)):
+        for i in range(0, len(posMeaningBlock)):
             if len(partOfSpeech) >= i+1:
                 front_word += '(' + HanziConv.toTraditional(partOfSpeech[i]['title']) + ')' + '<br>'
                 back_word  += '(' + HanziConv.toTraditional(partOfSpeech[i]['title']) + ')' + '<br>'
             posMeaning = posMeaningBlock[i].find_all('li', class_='flag')
             meaningCnt = 1
-            for j in range(0,len(posMeaning)):
+            for j in range(0, len(posMeaning)):
                 meaning = posMeaning[j].find('span', class_='word_comment soundmark_color')
                 if meaning == None:
                     meaning = posMeaning[j].find('span', class_='jp_explain soundmark_color')
