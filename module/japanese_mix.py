@@ -56,53 +56,53 @@ def LookUp(word, data):
     print('<<'+word+'>>')
     print(" ")
 
-    for i in jisho_Soup.find_all('div', class_='exact_block'):
-        firstBlock = i.find('div', class_='concept_light clearfix')
-        partJP = firstBlock.find('div', class_='concept_light-wrapper')
-        partEN = firstBlock.find('div', class_='concept_light-meanings')
-        status = partJP.find('div', class_='concept_light-status')
-        if status != None:
-            audio = status.find('audio')
-            if audio != None and download_dir != "":
-                source = audio.find('source')
-                if source != None and source['src'] != None:
-                    wget.download('http:'+source['src'], out=download_dir+"Jp_"+word+".mp3")
-                    # Insert the sound media into the card
-                    front_word += "[sound:Jp_"+word+".mp3]"
-            else:
-                needHJSound = True
+    exactBlock = jisho_Soup.find('div', class_='exact_block')
+    firstBlock = exactBlock.find('div', class_='concept_light clearfix')
+    partJP = firstBlock.find('div', class_='concept_light-wrapper')
+    partEN = firstBlock.find('div', class_='concept_light-meanings')
+    status = partJP.find('div', class_='concept_light-status')
+    if status != None:
+        audio = status.find('audio')
+        if audio != None and download_dir != "":
+            source = audio.find('source')
+            if source != None and source['src'] != None:
+                wget.download('http:'+source['src'], out=download_dir+"Jp_"+word+".mp3")
+                # Insert the sound media into the card
+                front_word += "[sound:Jp_"+word+".mp3]"
         else:
             needHJSound = True
+    else:
+        needHJSound = True
 
-        furiBlock = partJP.find('span', class_='furigana')
-        rubyBlock = furiBlock.find('ruby', class_='furigana-justify')
-        if rubyBlock is not None:
-            furiList = rubyBlock.find('rt').get_text()
-        else:
-            furiCnt = 0
-            for child in furiBlock.children:
-                furiChild.append(child.string)
-                furiCnt += 1
-            furiList = list(filter(("\n").__ne__, furiChild))
+    furiBlock = partJP.find('span', class_='furigana')
+    rubyBlock = furiBlock.find('ruby', class_='furigana-justify')
+    if rubyBlock is not None:
+        furiList = rubyBlock.find('rt').get_text()
+    else:
+        furiCnt = 0
+        for child in furiBlock.children:
+            furiChild.append(child.string)
+            furiCnt += 1
+        furiList = list(filter(("\n").__ne__, furiChild))
 
-        textBlock = partJP.find('span', class_='text')
-        textCnt = 0
-        for child in textBlock.children:
-            textChild.append(child.string)
-            textCnt += 1
-        for k in range(0, len(textChild)):
-            for chr in _unicode_chr_splitter( textChild[k] ):
-                if chr != '\n' and chr != ' ' and chr != '':
-                    textList.append(chr)
-        
-        if len(furiList) != len(textList):
-            reading = ''
-        else:
-            for j in range(0, len(textList)):
-                if furiList[j] == None:
-                    reading += textList[j] 
-                else:
-                    reading += " " + textList[j] + "[" + furiList[j] + "]" 
+    textBlock = partJP.find('span', class_='text')
+    textCnt = 0
+    for child in textBlock.children:
+        textChild.append(child.string)
+        textCnt += 1
+    for i in range(0, len(textChild)):
+        for chr in _unicode_chr_splitter( textChild[i] ):
+            if chr != '\n' and chr != ' ' and chr != '':
+                textList.append(chr)
+    
+    if len(furiList) != len(textList):
+        reading = ''
+    else:
+        for i in range(0, len(textList)):
+            if furiList[i] == None:
+                reading += textList[i] 
+            else:
+                reading += " " + textList[i] + "[" + furiList[i] + "]" 
 
     for i in range(0, len(textList)):
         front_word += textList[i]
@@ -114,6 +114,7 @@ def LookUp(word, data):
     
     headwordJpCnt = 1
     headwordJpStr = 'headword_jp_' + str(headwordJpCnt)
+
     while mainContainer.find('div', id=headwordJpStr, class_='jp_word_comment') != None:
         wordBlock = mainContainer.find('div', id=headwordJpStr, class_='jp_word_comment')
         wordExt = wordBlock.find('div', class_='word_ext_con clearfix')
