@@ -17,34 +17,34 @@ def LookUp(word, data):
     # Eliminate the end of line delimiter
     word = word.splitlines()[0]
     wordUrl = urllib.parse.quote(word, safe='')
-    url="http://jisho.org/search/{}".format(wordUrl)
+    url='http://jisho.org/search/{}'.format(wordUrl)
     content = urllib.request.urlopen(url).read()
     soup = BeautifulSoup(content, 'lxml')
-    front_word = ""
-    back_word = ""
-    furi = ""
+    front_word = ''
+    back_word = ''
+    furi = ''
     furiChild = []
     furiList = []
-    text = ""
+    text = ''
     textChild = []
     textList = []
-    reading = ""
+    reading = ''
     cnt = 0
-    download_dir = ""
+    download_dir = ''
 
-    if "download_dir" in data:
+    if 'download_dir' in data:
         download_dir = data['download_dir']
         
-    if word == "":
+    if word == '':
         return None
         
     wrongSpelling = soup.find('div', id='no-matches')
     if wrongSpelling is not None:
         return None
     
-    print(" ")
+    print(' ')
     print('<<'+word+'>>')
-    print(" ")
+    print(' ')
 
     exactBlock = soup.find('div', class_='exact_block')
     firstBlock = exactBlock.find('div', class_='concept_light clearfix')
@@ -53,12 +53,12 @@ def LookUp(word, data):
     status = partJP.find('div', class_='concept_light-status')
     if(status != None):
         audio = status.find('audio')
-        if audio != None and download_dir != "":
+        if audio != None and download_dir != '':
             source = audio.find('source')
-            wget.download('http:'+source['src'], out=download_dir+"Jp_"+word+".mp3")
+            wget.download('http:'+source['src'], out=download_dir+'Jp_'+word+'.mp3')
             # Insert the sound media into the card
-            front_word += "[sound:Jp_"+word+".mp3]"
-    front_word += word + "<br>"
+            front_word += '[sound:Jp_'+word+'.mp3]'
+    front_word += word + '<br>'
     
     furiBlock = partJP.find('span', class_='furigana')
     rubyBlock = furiBlock.find('ruby', class_='furigana-justify')
@@ -69,7 +69,7 @@ def LookUp(word, data):
         for child in furiBlock.children:
             furiChild.append(child.string)
             furiCnt += 1
-        furiList = list(filter(("\n").__ne__, furiChild))
+        furiList = list(filter(('\n').__ne__, furiChild))
 
     textBlock = partJP.find('span', class_='text')
     textCnt = 0
@@ -88,13 +88,13 @@ def LookUp(word, data):
             if furiList[i] == None:
                 reading += textList[i] 
             else:
-                reading += " " + textList[i] + "[" + furiList[i] + "]" 
+                reading += ' ' + textList[i] + '[' + furiList[i] + ']' 
                 
-    for i in partEN.find_all('div', class_="meanings-wrapper"):
-        for j in i.find_all('div', class_="meaning-wrapper"):
+    for i in partEN.find_all('div', class_='meanings-wrapper'):
+        for j in i.find_all('div', class_='meaning-wrapper'):
             cnt = cnt + 1
             back_word += str(cnt) + '. '
-            for q in j.find_all('span', class_="meaning-meaning"):
+            for q in j.find_all('span', class_='meaning-meaning'):
                 back_word += q.get_text() + '<br>'
 
     result['read_word'] = reading

@@ -13,7 +13,7 @@ def LookUp(word, data):
     word = word.splitlines()[0]
     wordUrl = urllib.parse.quote(word, safe='')
     wordUrl = wordUrl.replace('%20','-')
-    url="https://dictionary.cambridge.org/us/dictionary/english/{}".format(wordUrl)
+    url='https://dictionary.cambridge.org/us/dictionary/english/{}'.format(wordUrl)
     content = urllib.request.urlopen(url).read()
     soup = BeautifulSoup(content, 'lxml')
     result = {}
@@ -26,28 +26,28 @@ def LookUp(word, data):
     posStyleTail = '</font>'
     cnt = 1
 
-    if "download_dir" in data:
+    if 'download_dir' in data:
         download_dir = data['download_dir']
 
-    if word == "":
+    if word == '':
         return None
 
     tabEntry = soup.find('div', class_='tabs tabs-entry js-tabs-wrap js-toc')
     if(tabEntry is None):
         return None
 
-    english = tabEntry.find('div', class_='tabs__content on', attrs={"data-tab": "ds-american-english"})
+    english = tabEntry.find('div', class_='tabs__content on', attrs={'data-tab': 'ds-american-english'})
     if(english is None):
-        english = tabEntry.find('div', class_='tabs__content on', attrs={"data-tab": "ds-british"})
+        english = tabEntry.find('div', class_='tabs__content on', attrs={'data-tab': 'ds-british'})
         if(english is None):
-            english = tabEntry.find('div', class_='tabs__content on', attrs={"data-tab": "ds-business-english"})
+            english = tabEntry.find('div', class_='tabs__content on', attrs={'data-tab': 'ds-business-english'})
 
     partOfSpeech = english.find_all('div', class_='entry-body__el clrd js-share-holder')
     sound = partOfSpeech[0].find('span', attrs={'data-src-mp3':True})
 
     if(sound is not None and sound['data-src-mp3'] is not None):
-        wget.download(sound['data-src-mp3'], out=download_dir+"Py_"+word+".mp3")
-        front_word = "[sound:Py_"+word+".mp3]" + front_word
+        wget.download(sound['data-src-mp3'], out=download_dir+'Py_'+word+'.mp3')
+        front_word = '[sound:Py_'+word+'.mp3]' + front_word
     for i in range(0,len(partOfSpeech)):
         posgram = partOfSpeech[i].find('span', class_='posgram ico-bg')
         if(posgram is not None):
@@ -78,8 +78,8 @@ def LookUp(word, data):
                     front_word += str(cnt) + '. ' + '<br>'
                 cnt += 1
 
-    # Some meaning will reveal the "word" in back_word
-    back_word = back_word.replace(word,"___")
+    # Some meaning will reveal the 'word' in back_word
+    back_word = back_word.replace(word,'___')
 
     result['front_word'] = front_word
     result['back_word'] = back_word
