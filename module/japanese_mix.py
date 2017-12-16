@@ -6,7 +6,6 @@ import subprocess
 import platform
 import datetime
 import json
-import wget
 import re
 from hanziconv import HanziConv # https://pypi.python.org/pypi/hanziconv/0.2.1
 from re import compile as _Re
@@ -16,45 +15,45 @@ _unicode_chr_splitter = _Re( '(?s)((?:[\u2e80-\u9fff])|.)' ).split
 def LookUp(word, data):
     
     result = {}
-    front_word = ""
-    back_word = ""
-    furi = ""
+    front_word = ''
+    back_word = ''
+    furi = ''
     furiChild = []
     furiList = []
-    text = ""
+    text = ''
     textChild = []
     textList = []
-    reading = ""
+    reading = ''
     cnt = 0
-    download_dir = ""
-    needHJSound = False
+    download_dir = ''
+    needHJSound = True
 
     # Eliminate the end of line delimiter
     word = word.splitlines()[0]
     wordUrl = urllib.parse.quote(word, safe='')
 
-    jisho_Url = "http://jisho.org/search/{}".format(wordUrl)
+    jisho_Url = 'http://jisho.org/search/{}'.format(wordUrl)
     jisho_Content = urllib.request.urlopen(jisho_Url).read()
     jisho_Soup = BeautifulSoup(jisho_Content, 'lxml')
 
-    hj_Url = "https://dict.hjenglish.com/jp/jc/{}".format(wordUrl)
+    hj_Url = 'https://dict.hjenglish.com/jp/jc/{}'.format(wordUrl)
     req = Request(hj_Url, headers={'User-Agent': 'Mozilla/5.0'})
     hj_Content = urllib.request.urlopen(req).read()
     hj_Soup = BeautifulSoup(hj_Content, 'lxml')
 
-    if "download_dir" in data:
+    if 'download_dir' in data:
         download_dir = data['download_dir']
         
-    if word == "":
+    if word == '':
         return None
         
     wrongSpelling = jisho_Soup.find('div', id='no-matches')
     if wrongSpelling is not None:
         return None
     
-    print(" ")
-    print('<<'+word+'>>')
-    print(" ")
+    print(' ')
+    print('<<' + word + '>>')
+    print(' ')
 
     exactBlock = jisho_Soup.find('div', class_='exact_block')
     firstBlock = exactBlock.find('div', class_='concept_light clearfix')
@@ -63,16 +62,16 @@ def LookUp(word, data):
     status = partJP.find('div', class_='concept_light-status')
     if status != None:
         audio = status.find('audio')
-        if audio != None and download_dir != "":
+        if audio != None and download_dir != '':
             source = audio.find('source')
             if source != None and source['src'] != None:
-                wget.download('http:'+source['src'], out=download_dir+"Jp_"+word+".mp3")
-                # Insert the sound media into the card
-                front_word += "[sound:Jp_"+word+".mp3]"
-        else:
-            needHJSound = True
-    else:
-        needHJSound = True
+                try:
+                    urllib.request.urlretrieve('http:'+source['src'], download_dir+'Jp_'+word+'.mp3')
+                    # Insert the sound media into the card
+                    front_word += '[sound:Jp_'+word+'.mp3]'
+                    needHJSound = False
+                except urllib.error.HTTPError as err:
+                    print('err=', err)
 
     furiBlock = partJP.find('span', class_='furigana')
     rubyBlock = furiBlock.find('ruby', class_='furigana-justify')
@@ -83,7 +82,7 @@ def LookUp(word, data):
         for child in furiBlock.children:
             furiChild.append(child.string)
             furiCnt += 1
-        furiList = list(filter(("\n").__ne__, furiChild))
+        furiList = list(filter(('\n').__ne__, furiChild))
 
     textBlock = partJP.find('span', class_='text')
     textCnt = 0
@@ -102,11 +101,11 @@ def LookUp(word, data):
             if furiList[i] == None:
                 reading += textList[i] 
             else:
-                reading += " " + textList[i] + "[" + furiList[i] + "]" 
+                reading += ' ' + textList[i] + '[' + furiList[i] + ']' 
 
     for i in range(0, len(textList)):
         front_word += textList[i]
-    front_word += "<br>"
+    front_word += '<br>'
 
     wrapper = hj_Soup.find('div', id='wrapper')
     mainBlock = wrapper.find('div', id='main')
@@ -128,8 +127,8 @@ def LookUp(word, data):
         #         hjSound = jpSound.find('script').get_text()
         #         hjSound = hjSound.replace('GetTTSVoice("','')
         #         hjSound = hjSound.replace('")','')
-        #         wget.download(hjSound, out=download_dir+"Jp_"+word+".mp3")
-        #         front_word += "[sound:Jp_"+word+".mp3]"
+        #         wget.download(hjSound, out=download_dir+'Jp_'+word+'.mp3')
+        #         front_word += '[sound:Jp_'+word+'.mp3]'
 
         #         // This apart is not complete yet
 
