@@ -152,11 +152,10 @@ def LookUp(word, data):
                 meaningText = meaning.get_text()                    
                 meaningText = meaningText[0:meaningText.find('（')]  # Truncate the content after '（'
                 meaningText = meaningText.replace('。', '')          # Remove the '。'
-                back_word += str(meaningCnt) + '. ' + meaningText + '<br>'
+                if len(posMeaning) != 1:
+                    back_word += str(meaningCnt) + '. '
+                back_word += meaningText + '<br>'
                 meaningCnt += 1
-            if meaningCnt == 2:
-                back_word = back_word.replace('1. ', '')            # If there is only one meaning, remove the numbered list
-
 
         headwordJpCnt += 1
         headwordJpStr = 'headword_jp_' + str(headwordJpCnt)

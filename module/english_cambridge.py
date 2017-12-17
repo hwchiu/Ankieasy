@@ -24,7 +24,6 @@ def LookUp(word, data):
     guideWordStyleTail = '</b></font>'
     posStyleHead = '<font color=#00fff9>'
     posStyleTail = '</font>'
-    cnt = 1
 
     if 'download_dir' in data:
         download_dir = data['download_dir']
@@ -33,49 +32,52 @@ def LookUp(word, data):
         return None
 
     tabEntry = soup.find('div', class_='tabs tabs-entry js-tabs-wrap js-toc')
-    if(tabEntry is None):
+    if tabEntry is None:
         return None
 
     english = tabEntry.find('div', class_='tabs__content on', attrs={'data-tab': 'ds-american-english'})
-    if(english is None):
+    if english is None:
         english = tabEntry.find('div', class_='tabs__content on', attrs={'data-tab': 'ds-british'})
-        if(english is None):
+        if english is None:
             english = tabEntry.find('div', class_='tabs__content on', attrs={'data-tab': 'ds-business-english'})
 
     partOfSpeech = english.find_all('div', class_='entry-body__el clrd js-share-holder')
     sound = partOfSpeech[0].find('span', attrs={'data-src-mp3':True})
 
-    if(sound is not None and sound['data-src-mp3'] is not None):
+    if sound is not None and sound['data-src-mp3'] is not None:
         wget.download(sound['data-src-mp3'], out=download_dir+'Py_'+word+'.mp3')
         front_word = '[sound:Py_'+word+'.mp3]' + front_word
     for i in range(0,len(partOfSpeech)):
         posgram = partOfSpeech[i].find('span', class_='posgram ico-bg')
-        if(posgram is not None):
+        if posgram is not None:
             pos = posgram.find('span').get_text() # get POS
             front_word += posStyleHead + '(' + pos + ')' + posStyleTail + '<br>'
             back_word +=  posStyleHead + '(' + pos + ')' + posStyleTail + '<br>'
         senseBlock = partOfSpeech[i].find_all('div', class_='sense-block')
+        cnt = 1
         for j in range(0,len(senseBlock)):
             guideWord = senseBlock[j].find('span', class_='guideword') # get the guide word ex.(BREAK)
-            if(guideWord is not None):
+            if guideWord is not None:
                 guideWordClear = guideWord.find('span').get_text()
                 back_word += guideWordStyleHead + '(' + guideWordClear + ')' + guideWordStyleTail + '<br>'
             defBlock = senseBlock[j].find_all('div', class_='def-block pad-indent')
             for k in range(0,len(defBlock)):
                 # English explain
                 explain = defBlock[k].find('b', class_='def').get_text() # get the explain
-                if(explain[-2] == ':'):
+                if explain[-2] == ':':
                     tmp = explain[:-2]
-                    explain = tmp + '.' # Replace the colon to dot
-                back_word += str(cnt) + '. ' + explain + '<br>'
+                    explain = tmp + '.'     # Replace the colon to dot
+                if len(senseBlock) != 1:    # If the part of speech has more than one meaning, number the meaning list
+                    front_word += str(cnt) + '. '
+                    back_word += str(cnt) + '. '
+                back_word += explain + '<br>'
 
                 # example sentence
                 defBody = defBlock[k].find('span', class_='def-body')
-                if(defBody is not None):
+                if defBody is not None:
                     exampleSentence = defBody.find('span', class_='eg').get_text() # get example sentence
-                    front_word += str(cnt) + '. ' + exampleSentence + '<br>'
-                else:
-                    front_word += str(cnt) + '. ' + '<br>'
+                    front_word += exampleSentence
+                front_word += '<br>'
                 cnt += 1
 
     # Some meaning will reveal the 'word' in back_word
