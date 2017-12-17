@@ -32,13 +32,16 @@ def LookUp(word, data):
     word = word.splitlines()[0]
     wordUrl = urllib.parse.quote(word, safe='')
 
+    opener=urllib.request.build_opener()
+    opener.addheaders=[('User-Agent','Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1941.0 Safari/537.36')]
+    urllib.request.install_opener(opener)
+
     jisho_Url = 'http://jisho.org/search/{}'.format(wordUrl)
     jisho_Content = urllib.request.urlopen(jisho_Url).read()
     jisho_Soup = BeautifulSoup(jisho_Content, 'lxml')
 
     hj_Url = 'https://dict.hjenglish.com/jp/jc/{}'.format(wordUrl)
-    req = Request(hj_Url, headers={'User-Agent': 'Mozilla/5.0'})
-    hj_Content = urllib.request.urlopen(req).read()
+    hj_Content = urllib.request.urlopen(hj_Url).read()
     hj_Soup = BeautifulSoup(hj_Content, 'lxml')
 
     if 'download_dir' in data:
@@ -66,12 +69,13 @@ def LookUp(word, data):
             source = audio.find('source')
             if source != None and source['src'] != None:
                 try:
+                    # Download the sound media to the media folder
                     urllib.request.urlretrieve('http:'+source['src'], download_dir+'Jp_'+word+'.mp3')
                     # Insert the sound media into the card
                     front_word += '[sound:Jp_'+word+'.mp3]'
                     needHJSound = False
                 except urllib.error.HTTPError as err:
-                    print('err=', err)
+                    print('Jisho_err=', err)
 
     furiBlock = partJP.find('span', class_='furigana')
     rubyBlock = furiBlock.find('ruby', class_='furigana-justify')
@@ -118,19 +122,20 @@ def LookUp(word, data):
         wordBlock = mainContainer.find('div', id=headwordJpStr, class_='jp_word_comment')
         wordExt = wordBlock.find('div', class_='word_ext_con clearfix')
         
-        #         // This apart is not complete yet
-        
-        # if needHJSound:
-        #     mt10 = wordBlock.find('div', class_='mt10')
-        #     jpSound = mt10.find('span', class_='jpSound')
-        #     if jpSound != None:
-        #         hjSound = jpSound.find('script').get_text()
-        #         hjSound = hjSound.replace('GetTTSVoice("','')
-        #         hjSound = hjSound.replace('")','')
-        #         wget.download(hjSound, out=download_dir+'Jp_'+word+'.mp3')
-        #         front_word += '[sound:Jp_'+word+'.mp3]'
-
-        #         // This apart is not complete yet
+        if needHJSound:
+            mt10 = wordBlock.find('div', class_='mt10')
+            jpSound = mt10.find('span', class_='jpSound')
+            if jpSound != None:
+                hjSound = jpSound.find('script').get_text()
+                hjSound = hjSound.replace('GetTTSVoice("','')
+                hjSound = hjSound.replace('")','')
+                hjSound = hjSound.replace(';','')
+                print('hjSound=', hjSound)
+                try:
+                    urllib.request.urlretrieve(hjSound, download_dir+'Jp_'+word+str(headwordJpCnt)+'.mp3')
+                    front_word += '[sound:Jp_'+word+str(headwordJpCnt)+'.mp3]'
+                except urllib.error.HTTPError as err:
+                    print('HJ_err=', err)
 
         partOfSpeech = wordExt.find_all('div', class_='flag big_type tip_content_item')
         posMeaningBlock = wordExt.find_all('ul', class_='tip_content_item jp_definition_com')
@@ -144,8 +149,14 @@ def LookUp(word, data):
                 meaning = posMeaning[j].find('span', class_='word_comment soundmark_color')
                 if meaning == None:
                     meaning = posMeaning[j].find('span', class_='jp_explain soundmark_color')
-                back_word += str(meaningCnt) + '. ' + meaning.get_text() + '<br>'
+                meaningText = meaning.get_text()                    
+                meaningText = meaningText[0:meaningText.find('（')]  # Truncate the content after '（'
+                meaningText = meaningText.replace('。', '')          # Remove the '。'
+                back_word += str(meaningCnt) + '. ' + meaningText + '<br>'
                 meaningCnt += 1
+            if meaningCnt == 2:
+                back_word = back_word.replace('1. ', '')            # If there is only one meaning, remove the numbered list
+
 
         headwordJpCnt += 1
         headwordJpStr = 'headword_jp_' + str(headwordJpCnt)
