@@ -28,13 +28,13 @@ def LookUp(word, data):
     download_dir = ''
     needHJSound = True
 
-    # Eliminate the end of line delimiter
-    word = word.splitlines()[0]
-    wordUrl = urllib.parse.quote(word, safe='')
-
     opener=urllib.request.build_opener()
     opener.addheaders=[('User-Agent','Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1941.0 Safari/537.36')]
     urllib.request.install_opener(opener)
+
+    # Eliminate the end of line delimiter
+    word = word.splitlines()[0]
+    wordUrl = urllib.parse.quote(word, safe='')
 
     jisho_Url = 'http://jisho.org/search/{}'.format(wordUrl)
     jisho_Content = urllib.request.urlopen(jisho_Url).read()
@@ -133,7 +133,7 @@ def LookUp(word, data):
                 print('hjSound=', hjSound)
                 try:
                     urllib.request.urlretrieve(hjSound, download_dir+'Jp_'+word+str(headwordJpCnt)+'.mp3')
-                    front_word += '[sound:Jp_'+word+str(headwordJpCnt)+'.mp3]'
+                    front_word = '[sound:Jp_'+word+str(headwordJpCnt)+'.mp3]' + front_word
                 except urllib.error.HTTPError as err:
                     print('HJ_err=', err)
 

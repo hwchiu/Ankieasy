@@ -5,15 +5,20 @@ import subprocess
 import platform
 import datetime
 import json
-import wget
 import re
 
 def LookUp(word, data):
+
     # Eliminate the end of line delimiter
     word = word.splitlines()[0]
     wordUrl = urllib.parse.quote(word, safe='')
     wordUrl = wordUrl.replace('%20','-')
     url='https://dictionary.cambridge.org/us/dictionary/english/{}'.format(wordUrl)
+
+    opener=urllib.request.build_opener()
+    opener.addheaders=[('User-Agent','Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1941.0 Safari/537.36')]
+    urllib.request.install_opener(opener)
+
     content = urllib.request.urlopen(url).read()
     soup = BeautifulSoup(content, 'lxml')
     result = {}
@@ -45,8 +50,12 @@ def LookUp(word, data):
     sound = partOfSpeech[0].find('span', attrs={'data-src-mp3':True})
 
     if sound is not None and sound['data-src-mp3'] is not None:
-        wget.download(sound['data-src-mp3'], out=download_dir+'Py_'+word+'.mp3')
-        front_word = '[sound:Py_'+word+'.mp3]' + front_word
+        try:
+            urllib.request.urlretrieve(sound['data-src-mp3'], download_dir+'Py_'+word+'.mp3')
+            front_word = '[sound:Py_'+word+'.mp3]' + front_word
+        except urllib.error.HTTPError as err:
+            print("HTTP Error:", err)
+
     for i in range(0,len(partOfSpeech)):
         posgram = partOfSpeech[i].find('span', class_='posgram ico-bg')
         if posgram is not None:
