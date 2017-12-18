@@ -1,4 +1,4 @@
-import urllib.request;
+import urllib.request
 from urllib.parse import quote
 from bs4 import BeautifulSoup
 import subprocess
