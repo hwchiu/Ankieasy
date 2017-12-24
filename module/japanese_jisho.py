@@ -5,7 +5,6 @@ import subprocess
 import platform
 import datetime
 import json
-import wget
 import re
 from re import compile as _Re
 
@@ -32,6 +31,10 @@ def LookUp(word, data):
     cnt = 0
     download_dir = ''
 
+    opener=urllib.request.build_opener()
+    opener.addheaders=[('User-Agent','Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1941.0 Safari/537.36')]
+    urllib.request.install_opener(opener)
+
     if 'download_dir' in data:
         download_dir = data['download_dir']
         
@@ -53,13 +56,18 @@ def LookUp(word, data):
     partJP = firstBlock.find('div', class_='concept_light-wrapper')
     partEN = firstBlock.find('div', class_='concept_light-meanings')
     status = partJP.find('div', class_='concept_light-status')
-    if(status != None):
+    if status != None:
         audio = status.find('audio')
         if audio != None and download_dir != '':
             source = audio.find('source')
-            wget.download('http:'+source['src'], out=download_dir+'Jp_'+word+'.mp3')
-            # Insert the sound media into the card
-            front_word += '[sound:Jp_'+word+'.mp3]'
+            if source != None and source['src'] != None:
+                try:
+                    # Download the sound media to the media folder
+                    urllib.request.urlretrieve('http:'+source['src'], download_dir+'Jp_'+word+'.mp3')
+                    # Insert the sound media into the card
+                    front_word += '[sound:Jp_'+word+'.mp3]'
+                except urllib.error.HTTPError as err:
+                    print('Jisho_err=', err)
     front_word += word + '<br>'
     
     furiBlock = partJP.find('span', class_='furigana')
