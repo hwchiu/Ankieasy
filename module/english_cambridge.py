@@ -13,6 +13,7 @@ def LookUp(word, data):
     word = word.splitlines()[0]
     wordUrl = urllib.parse.quote(word, safe='')
     wordUrl = wordUrl.replace('%20','-')
+    wordUrl = wordUrl.replace('%27','-')
     url='https://dictionary.cambridge.org/us/dictionary/english/{}'.format(wordUrl)
 
     opener=urllib.request.build_opener()
