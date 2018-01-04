@@ -47,6 +47,8 @@ def LookUp(word, data):
     print(' ')
 
     exactBlock = soup.find('div', class_='exact_block')
+    if exactBlock == None:
+        exactBlock = jisho_Soup.find('div', class_='concepts')
     firstBlock = exactBlock.find('div', class_='concept_light clearfix')
     partJP = firstBlock.find('div', class_='concept_light-wrapper')
     partEN = firstBlock.find('div', class_='concept_light-meanings')
