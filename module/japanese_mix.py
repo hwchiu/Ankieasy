@@ -168,8 +168,7 @@ def LookUp(word, data):
         result['read_word'] = reading
         result['front_word'] = front_word
         result['back_word'] = HanziConv.toTraditional(back_word)
-
         return result
     else:
         print('Get information failed!')
-        return None
+        return False

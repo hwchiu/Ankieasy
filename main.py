@@ -32,7 +32,7 @@ def handleProfile(data):
 
     if 'file' not in data or not os.path.exists(data['file']):
         print("No input file, Exit")
-        return
+        return False
 
     input_file = "{}/{}".format(os.getcwd(), data['file'])
 
@@ -47,6 +47,10 @@ def handleProfile(data):
 
             if result is None:
                 continue
+            elif result is False:
+                deck.save()
+                deck.close()
+                return False
             card_data = card_type.MakeCard(result)
 
             if 0 == len(card_data):
@@ -76,4 +80,5 @@ if '__main__':
         config_path = 'config.json'
     data = load_config(config_path)
     for profile in data['profiles']:
-        handleProfile(profile)
+        if handleProfile(profile) == False:
+            break
