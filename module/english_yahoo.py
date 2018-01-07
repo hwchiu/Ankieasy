@@ -6,7 +6,7 @@ import platform
 import datetime
 import json
 
-def LookUp(word, data):
+def LookUp(word, data, download_dir):
     # Eliminate the end of line delimiter
     word = word.splitlines()[0]
     wordUrl = urllib.parse.quote(word, safe='')
@@ -21,10 +21,6 @@ def LookUp(word, data):
     result = {}
     front_word = ''
     back_word = ''
-    download_dir = ''
-
-    if 'download_dir' in data:
-        download_dir = data['download_dir']
 
     if word == '':
         return None
@@ -44,7 +40,7 @@ def LookUp(word, data):
     print(' ')
 # Get the URL of the sound media
     soup_result = soup.find('span', id='iconStyle')
-    if soup_result is not None and download_dir != '':
+    if soup_result is not None and bool(download_dir) != False:
         sound = json.loads(soup_result.get_text())
         if sound is not None and sound['sound_url_1'] is not None:
             # Download the sound media and store at the specific directory (%username%/collection.media) and with a specific file name (Py_%word%.mp3)

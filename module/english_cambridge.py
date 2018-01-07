@@ -7,7 +7,7 @@ import datetime
 import json
 import re
 
-def LookUp(word, data):
+def LookUp(word, data, download_dir):
 
     # Eliminate the end of line delimiter
     word = word.splitlines()[0]
@@ -25,14 +25,10 @@ def LookUp(word, data):
     result = {}
     front_word = word + '<br>'
     back_word = ''
-    download_dir = ''
     guideWordStyleHead = '<font color="yellow"><b>'
     guideWordStyleTail = '</b></font>'
     posStyleHead = '<font color=#00fff9>'
     posStyleTail = '</font>'
-
-    if 'download_dir' in data:
-        download_dir = data['download_dir']
 
     if word == '':
         return None
@@ -50,7 +46,7 @@ def LookUp(word, data):
     partOfSpeech = english.find_all('div', class_='entry-body__el clrd js-share-holder')
     sound = partOfSpeech[0].find('span', attrs={'data-src-mp3':True})
 
-    if sound is not None and sound['data-src-mp3'] is not None:
+    if sound is not None and bool(download_dir) != False:
         try:
             urllib.request.urlretrieve(sound['data-src-mp3'], download_dir+'Py_'+word+'.mp3')
             front_word = '[sound:Py_'+word+'.mp3]' + front_word

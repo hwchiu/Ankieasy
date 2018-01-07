@@ -12,7 +12,7 @@ from re import compile as _Re
 
 _unicode_chr_splitter = _Re( '(?s)((?:[\u2e80-\u9fff])|.)' ).split
 
-def LookUp(word, data):
+def LookUp(word, data, download_dir):
     
     result = {}
     front_word = ''
@@ -25,7 +25,6 @@ def LookUp(word, data):
     textList = []
     reading = ''
     cnt = 0
-    download_dir = ''
     needHJSound = True
 
     opener=urllib.request.build_opener()
@@ -44,9 +43,6 @@ def LookUp(word, data):
     hj_Content = urllib.request.urlopen(hj_Url).read()
     hj_Soup = BeautifulSoup(hj_Content, 'lxml')
 
-    if 'download_dir' in data:
-        download_dir = data['download_dir']
-        
     if word == '':
         return None
         
@@ -67,7 +63,7 @@ def LookUp(word, data):
     status = partJP.find('div', class_='concept_light-status')
     if status != None:
         audio = status.find('audio')
-        if audio != None and download_dir != '':
+        if audio != None and bool(download_dir) != False:
             source = audio.find('source')
             if source != None and source['src'] != None:
                 try:
@@ -132,15 +128,17 @@ def LookUp(word, data):
                 jpSound = mt10.find('span', class_='jpSound')
                 if jpSound != None:
                     hjSound = jpSound.find('script').get_text()
-                    hjSound = hjSound.replace('GetTTSVoice("','')
-                    hjSound = hjSound.replace('")','')
-                    hjSound = hjSound.replace(';','')
-                    print('hjSound=', hjSound)
-                    try:
-                        urllib.request.urlretrieve(hjSound, download_dir+'Jp_'+word+str(headwordJpCnt)+'.mp3')
-                        front_word = '[sound:Jp_'+word+str(headwordJpCnt)+'.mp3]' + front_word
-                    except urllib.error.HTTPError as err:
-                        print('HJ_err=', err)
+                    if hjSound != None:
+                        hjSound = hjSound.replace('GetTTSVoice("','')
+                        hjSound = hjSound.replace('")','')
+                        hjSound = hjSound.replace(';','')
+                        print('hjSound=', hjSound)
+                        if hjSound != '' and bool(download_dir) != False:
+                            try:
+                                urllib.request.urlretrieve(hjSound, download_dir+'Jp_'+word+str(headwordJpCnt)+'.mp3')
+                                front_word = '[sound:Jp_'+word+str(headwordJpCnt)+'.mp3]' + front_word
+                            except urllib.error.HTTPError as err:
+                                print('HJ_err=', err)
 
             partOfSpeech = wordExt.find_all('div', class_='flag big_type tip_content_item')
             posMeaningBlock = wordExt.find_all('ul', class_='tip_content_item jp_definition_com')

@@ -10,7 +10,7 @@ from re import compile as _Re
 
 _unicode_chr_splitter = _Re( '(?s)((?:[\u2e80-\u9fff])|.)' ).split
 
-def LookUp(word, data):
+def LookUp(word, data, download_dir):
     result = {}
 
     # Eliminate the end of line delimiter
@@ -29,15 +29,11 @@ def LookUp(word, data):
     textList = []
     reading = ''
     cnt = 0
-    download_dir = ''
 
     opener=urllib.request.build_opener()
     opener.addheaders=[('User-Agent','Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1941.0 Safari/537.36')]
     urllib.request.install_opener(opener)
 
-    if 'download_dir' in data:
-        download_dir = data['download_dir']
-        
     if word == '':
         return None
         
@@ -58,7 +54,7 @@ def LookUp(word, data):
     status = partJP.find('div', class_='concept_light-status')
     if status != None:
         audio = status.find('audio')
-        if audio != None and download_dir != '':
+        if audio != None and bool(download_dir) != False:
             source = audio.find('source')
             if source != None and source['src'] != None:
                 try:

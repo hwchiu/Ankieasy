@@ -7,10 +7,11 @@ import os
 sys.path.append('anki')
 from anki import Collection as aopen
 
-def initAnkiModule(data, card_type):
-    if "collection" not in data or "deck" not in data:
+def initAnkiModule(data, collection, card_type):
+    if bool(collection) == False or "deck" not in data:
+        print('Collection or deck is not found!')
         return None
-    deck = aopen(data['collection'])
+    deck = aopen(collection)
     deckId = deck.decks.id(data['deck'])
 
     deck.decks.select(deckId)
@@ -21,14 +22,13 @@ def initAnkiModule(data, card_type):
         deck.models.setCurrent(model)
     return deck
 
-def handleCard(data):
+def handleCard(data, collection):
     print('deck file:{}'.format(data['deck']))
-    print('collection file:{}'.format(data['collection']))
     print('card_type:{}'.format(data['card_type'] if 'card_type' in data else 'Basic'))
 
     card_type = data['card_type'] if 'card_type' in data else 'basic'
     card_type = importlib.import_module('cardtype.{}'.format(card_type))
-    deck = initAnkiModule(data,card_type)
+    deck = initAnkiModule(data, collection, card_type)
     for result in data['content']:
         print(result)
         if result is None:
@@ -61,5 +61,6 @@ if '__main__':
     else:
         input_path = 'customInput.json'
     data = load_input(input_path)
+    collection = data['collection']
     for card in data['cards']:
-        handleCard(card)
+        handleCard(card, collection)

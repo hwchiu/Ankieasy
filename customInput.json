@@ -1,23 +1,36 @@
 {
+    "collection":"C:/Users/Yu-Hsien/AppData/Roaming/Anki2/YuHsien/collection.anki2",
     "cards": 
     [
  	 	{
 	        "deck":"日文句子",
-	        "collection":"C:/Users/Yu-Hsien/AppData/Roaming/Anki2/YuHsien/collection.anki2",
             "card_type":"japanse_recognition_recall",
             "content": 
             [
-                {
-                    "front_word":"A:もう　新幹線の　切符を　買いましたか。<br>B:はい、もう　買いました。",
-                    "back_word":"A:新幹線的車票已經買好了嗎?<br>B:是的，已經買好了",
-                    "read_word":""
-                },
-                {
-                    "front_word":"A:もう　昼ご飯を　食べましたか。<br>B:いいえ、まだです。　これから　食べます。",
-                    "back_word":"A:已經吃過午飯了嗎?<br>B:不，還沒。等等要去吃",
-                    "read_word":""
-                }
+                
             ]
-	   	}
-    ]
+        },
+        {
+	        "deck":"英文",
+            "card_type":"basic_reverse",
+            "content": 
+            [
+                
+            ]
+        },
+        {
+	        "deck":"英文片語",
+            "card_type":"basic_reverse",
+            "content": 
+            [
+                
+            ]
+        }
+    ],
+    "template":
+    {
+        "front_word":"",
+        "back_word":"",
+        "read_word":""
+    }
 }

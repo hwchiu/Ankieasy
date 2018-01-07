@@ -2,7 +2,7 @@ isChinese = False
 
 def GetCardType(models):
     global isChinese
-    if models.byName('基本型(含反向的卡片)') is not None:
+    if models.byName('基本型') is not None:
         isChinese = True
         return "基本型"
     else:

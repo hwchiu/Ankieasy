@@ -7,10 +7,11 @@ import os
 sys.path.append('anki')
 from anki import Collection as aopen
 
-def initAnkiModule(data, card_type):
-    if "collection" not in data or "deck" not in data:
+def initAnkiModule(data, collection, card_type):
+    if bool(collection) == False or "deck" not in data:
+        print('Collection or deck is not found!')
         return None
-    deck = aopen(data['collection'])
+    deck = aopen(collection)
     deckId = deck.decks.id(data['deck'])
 
     deck.decks.select(deckId)
@@ -21,14 +22,11 @@ def initAnkiModule(data, card_type):
         deck.models.setCurrent(model)
     return deck
 
-def handleProfile(data):
+def handleProfile(data, collection, download_dir):
     print('words file:{}'.format(data['file']))
     print('deck file:{}'.format(data['deck']))
-    print('collection file:{}'.format(data['collection']))
-    print('media file :{}'.format(data['download_dir']))
     print('dict_source :{}'.format(data['dict_source']))
     print('card_type:{}'.format(data['card_type'] if 'card_type' in data else 'Basic'))
-
 
     if 'file' not in data or not os.path.exists(data['file']):
         print("No input file, Exit")
@@ -40,10 +38,10 @@ def handleProfile(data):
 
     dict_source = importlib.import_module('module.{}'.format(data['dict_source'].lower()))
     card_type = importlib.import_module('cardtype.{}'.format(card_type))
-    deck = initAnkiModule(data,card_type)
+    deck = initAnkiModule(data, collection, card_type)
     with open(input_file , encoding='utf-8') as word_list:
         for word in word_list:
-            result = dict_source.LookUp(word, data)
+            result = dict_source.LookUp(word, data, download_dir)
 
             if result is None:
                 continue
@@ -79,6 +77,8 @@ if '__main__':
     else:
         config_path = 'config.json'
     data = load_config(config_path)
+    collection = data['collection']
+    download_dir = data['download_dir']
     for profile in data['profiles']:
-        if handleProfile(profile) == False:
+        if handleProfile(profile, collection, download_dir) == False:
             break
