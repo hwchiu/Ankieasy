@@ -1,29 +1,25 @@
 {
-    "profiles": [
+	"collection":"C:/Users/Yu-Hsien/AppData/Roaming/Anki2/YuHsien/collection.anki2",
+    "download_dir":"C:/Users/Yu-Hsien/AppData/Roaming/Anki2/YuHsien/collection.media/",
+	"profiles": 
+	[
  	 	{
 	        "file":"input_J",
 	        "deck":"日文",
-	        "collection":"C:/Users/Yu-Hsien/AppData/Roaming/Anki2/YuHsien/collection.anki2",
-            "download_dir":"C:/Users/Yu-Hsien/AppData/Roaming/Anki2/YuHsien/collection.media/",
-			"dict_source":"japanese_jisho",
+			"dict_source":"japanese_mix",
 			"card_type":"japanse_recognition_recall"
 	   	},
  	 	{
 	        "file":"input_EY",
 	        "deck":"英文",
-	        "collection":"C:/Users/Yu-Hsien/AppData/Roaming/Anki2/YuHsien/collection.anki2",
-            "download_dir":"C:/Users/Yu-Hsien/AppData/Roaming/Anki2/YuHsien/collection.media/",
 			"dict_source":"English_Yahoo",
 			"card_type":"basic_reverse"
 	   	},
  	 	{
 	        "file":"input_EC",
 	        "deck":"英文片語",
-	        "collection":"C:/Users/Yu-Hsien/AppData/Roaming/Anki2/YuHsien/collection.anki2",
-            "download_dir":"C:/Users/Yu-Hsien/AppData/Roaming/Anki2/YuHsien/collection.media/",
 			"dict_source":"English_Cambridge",
 			"card_type":"basic_reverse"
 	   	}
-
     ]
 }

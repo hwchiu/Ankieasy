@@ -1,26 +1,26 @@
-import urllib.request;
+import urllib.request
 from urllib.parse import quote
 from bs4 import BeautifulSoup
 import subprocess
 import platform
 import datetime
 import json
-import wget
 
-def LookUp(word, data):
+def LookUp(word, data, download_dir):
     # Eliminate the end of line delimiter
     word = word.splitlines()[0]
     wordUrl = urllib.parse.quote(word, safe='')
     url='https://tw.dictionary.search.yahoo.com/search?p={}'.format(wordUrl)
+    
+    opener=urllib.request.build_opener()
+    opener.addheaders=[('User-Agent','Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1941.0 Safari/537.36')]
+    urllib.request.install_opener(opener)
+    
     content = urllib.request.urlopen(url).read()
     soup = BeautifulSoup(content, 'lxml')
     result = {}
     front_word = ''
     back_word = ''
-    download_dir = ''
-
-    if 'download_dir' in data:
-        download_dir = data['download_dir']
 
     if word == '':
         return None
@@ -40,15 +40,18 @@ def LookUp(word, data):
     print(' ')
 # Get the URL of the sound media
     soup_result = soup.find('span', id='iconStyle')
-    if soup_result is not None and download_dir != '':
+    if soup_result is not None and bool(download_dir) != False:
         sound = json.loads(soup_result.get_text())
         if sound is not None and sound['sound_url_1'] is not None:
             # Download the sound media and store at the specific directory (%username%/collection.media) and with a specific file name (Py_%word%.mp3)
             for soundCnt in range(0,len(sound['sound_url_1'])):
                 if bool(sound['sound_url_1'][soundCnt]) == True :
-                    wget.download(sound['sound_url_1'][soundCnt]['mp3'], out=download_dir+'Py_'+word+'.mp3')
-                    front_word += '[sound:Py_'+word+'.mp3]'
-                    break
+                    try:
+                        urllib.request.urlretrieve(sound['sound_url_1'][soundCnt]['mp3'], download_dir+'Py_'+word+'.mp3')
+                        front_word += '[sound:Py_'+word+'.mp3]'
+                        break
+                    except urllib.error.HTTPError as err:
+                        print('HTTP Error=', err)
     # Insert the sound media into the card
     front_word += word + '<br>'
 
