@@ -109,8 +109,9 @@ def LookUp(word, data, download_dir):
         front_word += textList[i]
     front_word += '<br>'
     
-    body = hj_Soup.find('body')
-    if bool(body.attrs) == True:
+    body = hj_Soup.find('body', attrs={'onload': 'onInit();', 'onmousedown': 'MouseDownOnBody(event);'})
+
+    if body != None:
         wrapper = body.find('div', id='wrapper')
         webboxContent = wrapper.find('div', id='webbox-content')
         mainBlock = webboxContent.find('div', id='main')
@@ -152,9 +153,10 @@ def LookUp(word, data, download_dir):
                     meaning = posMeaning[j].find('span', class_='word_comment soundmark_color')
                     if meaning == None:
                         meaning = posMeaning[j].find('span', class_='jp_explain soundmark_color')
-                    meaningText = meaning.get_text()                    
-                    meaningText = meaningText[0:meaningText.find('（')]  # Truncate the content after '（'
-                    meaningText = meaningText.replace('。', '')          # Remove the '。'
+                    meaningText = meaning.get_text()
+                    if meaningText.find('（') != -1:
+                        meaningText = meaningText[0:meaningText.find('（')]  # Truncate the content after '（'
+                    meaningText = meaningText.replace('。', '')              # Remove the '。'
                     if len(posMeaning) != 1:
                         back_word += str(meaningCnt) + '. '
                     back_word += meaningText + '<br>'
