@@ -1,6 +1,7 @@
 import urllib.request
 from urllib.parse import quote
 from urllib.request import Request, urlopen
+import ssl
 from bs4 import BeautifulSoup
 import subprocess
 import platform
@@ -30,6 +31,7 @@ def LookUp(word, data, download_dir):
     opener=urllib.request.build_opener()
     opener.addheaders=[('User-Agent','Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1941.0 Safari/537.36')]
     urllib.request.install_opener(opener)
+    ssl._create_default_https_context = ssl._create_unverified_context
 
     # Eliminate the end of line delimiter
     word = word.splitlines()[0]
