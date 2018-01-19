@@ -159,8 +159,8 @@ def LookUp(word, data, download_dir):
                     if meaningText.find('（') != -1:
                         meaningText = meaningText[0:meaningText.find('（')]  # Truncate the content after '（'
                     meaningText = meaningText.replace('。', '')              # Remove the '。'
-                    if len(posMeaning) != 1:
-                        back_word += str(meaningCnt) + '. '
+                    if len(posMeaning) != 1:  
+                        back_word += str(meaningCnt) + '. ' # When there is only one meaning, remove the '1.'
                     back_word += meaningText + '<br>'
                     meaningCnt += 1
 
