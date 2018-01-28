@@ -92,10 +92,6 @@ def LookUp(word, data, download_dir):
 
     searchResult = ojad_Soup.find('div', id='search_result')
     table = searchResult.find('table', id='word_table', class_='draggable')
-    thead = table.find('thead')
-    theadTr = thead.find('tr')
-    midashi = theadTr.find('th', class_='midashi')
-    front_word += '[' + midashi.get_text() + ']<br>' # Get the type of the verb
 
     tbody = table.find('tbody')
     tbodyTr = tbody.find('tr') # The default value of tbodyTr is the first row (first <tr>)  
@@ -112,6 +108,11 @@ def LookUp(word, data, download_dir):
     # front_word = getVerb(tbodyTr, ['jisho', 'masu', 'te', 'ta', 'nai', 'nakatta', 'ba', 'shieki', 'ukemi', 'meirei', 'kano', 'ishi'], front_word, download_dir)
     # front_word = getVerb(tbodyTr, ['jisho', 'masu'], front_word, download_dir)
     front_word = getJishoMasu(tbodyTr, jisho_masu, front_word, download_dir)
+    
+    thead = table.find('thead')
+    theadTr = thead.find('tr')
+    midashi = theadTr.find('th', class_='midashi')
+    front_word += '[' + midashi.get_text() + ']<br>' # Get the type of the verb
 
     body = hj_Soup.find('body', attrs={'onload': 'onInit();', 'onmousedown': 'MouseDownOnBody(event);'})
     if body != None:
