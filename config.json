@@ -4,19 +4,19 @@
 	"profiles": 
 	[
  	 	{
-	        "file":"input_J",
+	        "file":"input_J.txt",
 	        "deck":"日文",
 			"dict_source":"japanese_mix",
 			"card_type":"japanse_recognition_recall"
 	   	},
  	 	{
-	        "file":"input_EY",
+	        "file":"input_EY.txt",
 	        "deck":"英文",
 			"dict_source":"English_Yahoo",
 			"card_type":"basic_reverse"
 	   	},
  	 	{
-	        "file":"input_EC",
+	        "file":"input_EC.txt",
 	        "deck":"英文片語",
 			"dict_source":"English_Cambridge",
 			"card_type":"basic_reverse"
