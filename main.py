@@ -3,6 +3,7 @@ import sys
 import json
 import importlib
 import os
+import click
 
 sys.path.append('anki')
 from anki import Collection as aopen

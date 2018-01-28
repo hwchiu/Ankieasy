@@ -1,3 +1,13 @@
+# Input and configuration files
+input_J
+input_EY
+input_EC
+config1.json
+config2.json
+to-do list.json
+customInput.json
+README.md
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
