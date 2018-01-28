@@ -162,6 +162,26 @@ def LookUp(word, data, download_dir):
                     if len(posMeaning) != 1:  
                         back_word += str(meaningCnt) + '. ' # When there is only one meaning, remove the '1.'
                     back_word += meaningText + '<br>'
+
+                    exSentStr = ''
+                    exSentCnt = 0
+                    exSentNum = 1 # How many example sentences you want in the card
+                    exSentence = posMeaning[j].contents[0]
+                    if len(posMeaning[j].contents) >= 2:
+                        exSentence = posMeaning[j].contents[1] # The second <div> in <li> in <ul class='tip_content_item jp_definition_com'>
+                    for child in exSentence.children:
+                        try:
+                            exSentStr += child.text
+                            if child.name == 'br': # Only take the first example sentence
+                                front_word += str(meaningCnt) + '. ' + exSentStr.split('/')[0] + '<br>'
+                                back_word += exSentStr.split('/')[1] + '<br>'
+                                exSentStr = ''
+                                exSentCnt += 1
+                                if exSentCnt == exSentNum:
+                                    break
+                        except:
+                            exSentStr += child
+                            
                     meaningCnt += 1
 
             headwordJpCnt += 1

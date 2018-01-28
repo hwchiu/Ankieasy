@@ -63,7 +63,6 @@ def LookUp(word, data, download_dir):
     result = {}
     front_word = ''
     back_word = ''
-    read_word = ''
     cnt = 0
 
     opener=urllib.request.build_opener()
@@ -108,7 +107,7 @@ def LookUp(word, data, download_dir):
     # front_word = getVerb(tbodyTr, ['jisho', 'masu', 'te', 'ta', 'nai', 'nakatta', 'ba', 'shieki', 'ukemi', 'meirei', 'kano', 'ishi'], front_word, download_dir)
     # front_word = getVerb(tbodyTr, ['jisho', 'masu'], front_word, download_dir)
     front_word = getJishoMasu(tbodyTr, jisho_masu, front_word, download_dir)
-    
+
     thead = table.find('thead')
     theadTr = thead.find('tr')
     midashi = theadTr.find('th', class_='midashi')
@@ -164,12 +163,13 @@ def LookUp(word, data, download_dir):
                                     break
                         except:
                             exSentStr += child
+                            
                     meaningCnt += 1
             headwordJpCnt += 1
             headwordJpStr = 'headword_jp_' + str(headwordJpCnt)
         result['front_word'] = front_word
         result['back_word'] = HanziConv.toTraditional(back_word)
-        result['read_word'] = read_word
+        result['read_word'] = ''
         print(result)
         return result
     else:
