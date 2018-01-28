@@ -37,12 +37,8 @@ def getVerb(tr, typeArray, front_word, download_dir):
     result['front_word'] = front_word
     return result
 
-def getJishoMasu(tr, front_word, download_dir):
+def getJishoMasu(tr, jisho_masu, front_word, download_dir):
     back_word = ''
-    midashi = tr.find('td', class_='midashi')
-    midashiWrapper = midashi.find('div', class_='midashi_wrapper')
-    jisho_masu = midashiWrapper.get_text()
-    jisho_masu = jisho_masu.split(chr(10))[1]
 
     jisho_masuCnt = 0
     for typeStr in ['jisho', 'masu']:
@@ -102,10 +98,20 @@ def LookUp(word, data, download_dir):
     front_word += '[' + midashi.get_text() + ']<br>' # Get the type of the verb
 
     tbody = table.find('tbody')
-    tbodyTr = tbody.find('tr')
+    tbodyTr = tbody.find('tr') # The default value of tbodyTr is the first row (first <tr>)  
+    for tbodyTrIter in tbody.find_all('tr'):
+        midashi = tbodyTrIter.find('td', class_='midashi')
+        if midashi == None:
+            continue
+        midashiWrapper = midashi.find('div', class_='midashi_wrapper')
+        jisho_masu = midashiWrapper.get_text()
+        jisho_masu = jisho_masu.split(chr(10))[1]
+        if word == jisho_masu.split('・')[0] or word == jisho_masu.split('・')[1]:
+            tbodyTr = tbodyTrIter
+            break
     # front_word = getVerb(tbodyTr, ['jisho', 'masu', 'te', 'ta', 'nai', 'nakatta', 'ba', 'shieki', 'ukemi', 'meirei', 'kano', 'ishi'], front_word, download_dir)
     # front_word = getVerb(tbodyTr, ['jisho', 'masu'], front_word, download_dir)
-    front_word = getJishoMasu(tbodyTr, front_word, download_dir)
+    front_word = getJishoMasu(tbodyTr, jisho_masu, front_word, download_dir)
 
     body = hj_Soup.find('body', attrs={'onload': 'onInit();', 'onmousedown': 'MouseDownOnBody(event);'})
     if body != None:
@@ -142,7 +148,9 @@ def LookUp(word, data, download_dir):
                     exSentStr = ''
                     exSentCnt = 0
                     exSentNum = 1 # How many example sentences you want in the card
-                    exSentence = posMeaning[j].contents[1] # The second <div> in <li> in <ul class='tip_content_item jp_definition_com'>
+                    exSentence = posMeaning[j].contents[0]
+                    if len(posMeaning[j].contents) >= 2:
+                        exSentence = posMeaning[j].contents[1] # The second <div> in <li> in <ul class='tip_content_item jp_definition_com'>
                     for child in exSentence.children:
                         try:
                             exSentStr += child.text
