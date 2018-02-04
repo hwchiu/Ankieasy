@@ -45,17 +45,19 @@ def getJishoMasu(tr, jisho_masu, front_word, download_dir):
         typeTd = tr.find('td', class_='katsuyo katsuyo_' + typeStr + '_js')
         soundDiv = typeTd.find('div', class_='katsuyo_proc_button clearfix')
         if soundDiv != None:
-            soundStr = soundDiv.find('a', class_='katsuyo_proc_female_button js_proc_female_button')['id']
-            # 把數字後兩位數截掉 前面加兩個0 再取後三位
-            soundStrNum = ('00' + str(math.floor(int(soundStr[0:soundStr.find('_')])/100)))[-3:]
-            soundUrl = 'http://www.gavo.t.u-tokyo.ac.jp/ojad/sound4/mp3/female/'+soundStrNum+'/'+soundStr+'.mp3'
-            try:
-                urllib.request.urlretrieve(soundUrl, download_dir + soundStr + '.mp3')
-                front_word += '[sound:'+soundStr+'.mp3]'
-            except urllib.error.HTTPError as err:
-                print('OJAD_err=', err)
-            front_word += jisho_masu.split('・')[jisho_masuCnt] + '<br>'
-            jisho_masuCnt += 1
+            femaleButton = soundDiv.find('a', class_='katsuyo_proc_female_button js_proc_female_button')
+            if femaleButton != None:
+                soundStr = femaleButton['id']
+                # 把數字後兩位數截掉 前面加兩個0 再取後三位
+                soundStrNum = ('00' + str(math.floor(int(soundStr[0:soundStr.find('_')])/100)))[-3:]
+                soundUrl = 'http://www.gavo.t.u-tokyo.ac.jp/ojad/sound4/mp3/female/'+soundStrNum+'/'+soundStr+'.mp3'
+                try:
+                    urllib.request.urlretrieve(soundUrl, download_dir + soundStr + '.mp3')
+                    front_word += '[sound:'+soundStr+'.mp3]'
+                except urllib.error.HTTPError as err:
+                    print('OJAD_err=', err)
+                front_word += jisho_masu.split('・')[jisho_masuCnt] + '<br>'
+                jisho_masuCnt += 1
     return front_word
 
 def LookUp(word, data, download_dir):
