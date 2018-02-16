@@ -118,10 +118,9 @@ def getExampleSentence(soup, sentenceCnt):   # dict
                 cnt += 1
                 if cnt == sentenceCnt:
                     break
-    if len(output['JP']) == 0:
-        output['JP'] = ['']
-    if len(output['CH']) == 0:
-        output['CH'] = ['']
+        if cnt == 0:
+            output['JP'].append('')
+            output['CH'].append('')
     # print(output)
     return output
 
@@ -179,17 +178,24 @@ def LookUp(word, data, download_dir):
     front_word = getJishoMasu(tbodyTr, jisho_masu, front_word, download_dir)
 
     wordDetailsContent = hj_Soup.find('section', class_ = 'word-details-content')
-    for wordDetailsPane in wordDetailsContent.find_all('div', class_ = 'word-details-pane'):
-        detailGroups = wordDetailsPane.find('section', class_ = 'detail-groups')
-        for posSoup in detailGroups.find_all('dl'):
-            frontAndBack = getPartOfSpeechBlock(posSoup, sentenceCnt, front_word, back_word)
-            front_word = frontAndBack['front_word']
-            back_word = frontAndBack['back_word']
-        differentWord += 1
-        print('front_word', front_word)
-        print('back_word', back_word)
-    result['front_word'] = front_word
-    result['back_word'] = HanziConv.toTraditional(back_word)
-    result['read_word'] = ''
-    return result
+    if wordDetailsContent != None:
+        for wordDetailsPane in wordDetailsContent.find_all('div', class_ = 'word-details-pane'):
+            detailGroups = wordDetailsPane.find('section', class_ = 'detail-groups')
+            if detailGroups != None:
+                for posSoup in detailGroups.find_all('dl'):
+                    frontAndBack = getPartOfSpeechBlock(posSoup, sentenceCnt, front_word, back_word)
+                    front_word = frontAndBack['front_word']
+                    back_word = frontAndBack['back_word']
+            differentWord += 1
+            print('front_word', front_word)
+            print('back_word', back_word)
+        result['front_word'] = front_word
+        result['back_word'] = HanziConv.toTraditional(back_word)
+        result['read_word'] = ''
+        return result
+    elif hj_Soup.find('div', class_ = 'word-suggestions') != None:
+        print(' ')
+        print('<< Word not found!!! >>')
+        print(' ')
+        return None
 

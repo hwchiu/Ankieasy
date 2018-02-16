@@ -32,10 +32,9 @@ def getPartOfSpeechBlock(soup, sentenceCnt, front_word, back_word):
         pos = HanziConv.toTraditional(pos)
         front_word += '(' + pos + ')<br>'
         back_word += '(' + pos + ')<br>'
-        # print(pos)
     meaning = getMeaning(soup)                              # list
     exampleSentence = getExampleSentence(soup, sentenceCnt) # dict
-    print('exampleSentence', exampleSentence)
+    print(exampleSentence)
     for i in range(0, len(meaning)):
         front_word += str(i+1) + '. ' + exampleSentence['JP'][i] + '<br>'
         back_word += str(i+1) + '. ' + meaning[i] + '<br>' + exampleSentence['CH'][i] + '<br>'
@@ -59,7 +58,6 @@ def getSoundAndTitle(soup, download_dir, word, differentWord):
                 output = '[sound:Jp_' + word + diffWordToken + '.mp3]'
             except urllib.error.HTTPError as err:
                 print('HJ_err=', err)
-    # print(output)
     return output
 
 def getMeaning(soup):           # list
@@ -71,7 +69,6 @@ def getMeaning(soup):           # list
             meaning = meaning.replace(chr(32), '')
             meaning = meaning.replace(chr(10), '')
             output.append(meaning)
-    # print(output)
     return output
 
 def getExampleSentence(soup, sentenceCnt):   # dict
@@ -100,11 +97,9 @@ def getExampleSentence(soup, sentenceCnt):   # dict
                 cnt += 1
                 if cnt == sentenceCnt:
                     break
-    if len(output['JP']) == 0:
-        output['JP'] = ['']
-    if len(output['CH']) == 0:
-        output['CH'] = ['']
-    # print(output)
+        if cnt == 0:
+            output['JP'].append('')
+            output['CH'].append('')
     return output
 
 def LookUp(word, data, download_dir):
@@ -139,20 +134,27 @@ def LookUp(word, data, download_dir):
 
     if word == '':
         return None
-    
+    # print(hj_Soup)
     wordDetailsContent = hj_Soup.find('section', class_ = 'word-details-content')
-    for wordDetailsPane in wordDetailsContent.find_all('div', class_ = 'word-details-pane'):
-        word = getWord(wordDetailsPane)
-        front_word += getSoundAndTitle(wordDetailsPane, download_dir, word, differentWord) + word + '<br>'
-        detailGroups = wordDetailsPane.find('section', class_ = 'detail-groups')
-        for posSoup in detailGroups.find_all('dl'):
-            frontAndBack = getPartOfSpeechBlock(posSoup, sentenceCnt, front_word, back_word)
-            front_word = frontAndBack['front_word']
-            back_word = frontAndBack['back_word']
-        differentWord += 1
-        print('front_word', front_word)
-        print('back_word', back_word)
-    result['front_word'] = front_word
-    result['back_word'] = HanziConv.toTraditional(back_word)
-    result['read_word'] = ''
-    return result
+    if wordDetailsContent != None:
+        for wordDetailsPane in wordDetailsContent.find_all('div', class_ = 'word-details-pane'):
+            word = getWord(wordDetailsPane)
+            front_word += getSoundAndTitle(wordDetailsPane, download_dir, word, differentWord) + word + '<br>'
+            detailGroups = wordDetailsPane.find('section', class_ = 'detail-groups')
+            if detailGroups != None:
+                for posSoup in detailGroups.find_all('dl'):
+                    frontAndBack = getPartOfSpeechBlock(posSoup, sentenceCnt, front_word, back_word)
+                    front_word = frontAndBack['front_word']
+                    back_word = frontAndBack['back_word']
+            differentWord += 1
+            print('front_word', front_word)
+            print('back_word', back_word)
+        result['front_word'] = front_word
+        result['back_word'] = HanziConv.toTraditional(back_word)
+        result['read_word'] = ''
+        return result
+    elif hj_Soup.find('div', class_ = 'word-suggestions') != None:
+        print(' ')
+        print('<< Word not found!!! >>')
+        print(' ')
+        return None
