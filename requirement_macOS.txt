@@ -1,0 +1,6 @@
+bs4
+lxml
+decorator
+pyaudio
+hanziconv
+click
