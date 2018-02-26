@@ -31,12 +31,6 @@ def LookUp(word, data, download_dir):
     if wrongSpelling is not None:
         return None
 
-
-    # If there is a typo, maybe the Yahoo dict will detect
-    checkTypo = soup.find('span', id='term').get_text()
-    if checkTypo != word:
-        word = checkTypo
-
     print(' ')
     print('<<'+word+'>>')
     print(' ')
