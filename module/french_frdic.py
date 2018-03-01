@@ -57,7 +57,7 @@ def getSoundAndTitle(soup, download_dir, word, differentWord):
                 urllib.request.urlretrieve(soundUrl, download_dir + 'Jp_' + word + diffWordToken + '.mp3')
                 output = '[sound:Jp_' + word + diffWordToken + '.mp3]'
             except urllib.error.HTTPError as err:
-                print('HJ_err=', err)
+                print('FR_err=', err)
     return output
 
 def getMeaning(soup):           # list
@@ -115,7 +115,6 @@ def LookUp(word, data, download_dir):
     textChild = []
     textList = []
     cnt = 0
-    needHJSound = True
     sentenceCnt = 1
     differentWord = 1
 
@@ -128,33 +127,26 @@ def LookUp(word, data, download_dir):
     word = word.splitlines()[0]
     wordUrl = urllib.parse.quote(word, safe='')
 
-    hj_Url = 'https://dict.hjenglish.com/jp/jc/{}'.format(wordUrl)
-    hj_Content = urllib.request.urlopen(hj_Url).read()
-    hj_Soup = BeautifulSoup(hj_Content, 'lxml')
+    fr_Url = 'http://www.frdic.com/dicts/fr/{}'.format(wordUrl)
+    fr_Content = urllib.request.urlopen(fr_Url).read()
+    fr_Soup = BeautifulSoup(fr_Content, 'lxml')
 
     if word == '':
         return None
-    # print(hj_Soup)
-    wordDetailsContent = hj_Soup.find('section', class_ = 'word-details-content')
-    if wordDetailsContent != None:
-        for wordDetailsPane in wordDetailsContent.find_all('div', class_ = 'word-details-pane'):
-            word = getWord(wordDetailsPane)
-            front_word += getSoundAndTitle(wordDetailsPane, download_dir, word, differentWord) + word + '<br>'
-            detailGroups = wordDetailsPane.find('section', class_ = 'detail-groups')
-            if detailGroups != None:
-                for posSoup in detailGroups.find_all('dl'):
-                    frontAndBack = getPartOfSpeechBlock(posSoup, sentenceCnt, front_word, back_word)
-                    front_word = frontAndBack['front_word']
-                    back_word = frontAndBack['back_word']
-            differentWord += 1
-            print('front_word', front_word)
-            print('back_word', back_word)
-        result['front_word'] = front_word
-        result['back_word'] = HanziConv.toTraditional(back_word)
-        result['read_word'] = ''
-        return result
-    elif hj_Soup.find('div', class_ = 'word-suggestions') != None:
-        print(' ')
-        print('<< Word not found!!! >>')
-        print(' ')
-        return None
+    # print(fr_Soup)
+    expDiv = fr_Soup.find('div', class_ = 'expDiv')
+    for pos in expDiv.find_all('span', class_ = 'cara'): # Part of speech
+        print('cara', pos.get_text('\n'))
+        # for child in pos.children:
+        #     print(child)
+    for meaning in expDiv.find_all('span', class_ = 'exp'):  # meaning
+        print('exp', meaning.get_text('\n'))
+        # for child in meaning.children:
+        #     print(child)
+    for exampleSentence in expDiv.find_all('span', class_ = 'eg'):   # example sentence
+        print('eg', exampleSentence.get_text('\n'))
+        # for child in exampleSentence.children:
+        #     print(child)
+    
+    return None
+    

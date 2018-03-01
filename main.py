@@ -3,6 +3,7 @@ import sys
 import json
 import importlib
 import os
+import click
 
 sys.path.append('anki')
 from anki import Collection as aopen
@@ -28,11 +29,13 @@ def handleProfile(data, collection, download_dir):
     print('dict_source :{}'.format(data['dict_source']))
     print('card_type:{}'.format(data['card_type'] if 'card_type' in data else 'Basic'))
 
-    if 'file' not in data or not os.path.exists(data['file']):
+    inputFilePath = 'input/{}'.format(data['file'])
+
+    if 'file' not in data or not os.path.exists(inputFilePath):
         print("No input file, Exit")
         return False
 
-    input_file = "{}/{}".format(os.getcwd(), data['file'])
+    input_file = "{}/{}".format(os.getcwd(), inputFilePath)
 
     card_type = data['card_type'] if 'card_type' in data else 'basic'
 

@@ -8,18 +8,57 @@ import platform
 import datetime
 import json
 import re
+import math
+from pyquery import PyQuery as pq
 from hanziconv import HanziConv # https://pypi.python.org/pypi/hanziconv/0.2.1
 from re import compile as _Re
 
 _unicode_chr_splitter = _Re( '(?s)((?:[\u2e80-\u9fff])|.)' ).split
 
-def getWord(soup):
-    output = ''
-    wordText = soup.find('div', class_='word-text')
-    h2 = wordText.find('h2')
-    if h2 != None:
-        output = h2.get_text()
-    return output
+def getVerb(tr, typeArray, front_word, download_dir):
+    result = {}
+    back_word = ''
+    
+    for typeStr in typeArray:
+        typeTd = tr.find('td', class_='katsuyo katsuyo_' + typeStr + '_js')
+        accentedWord = typeTd.find('span', class_='accented_word')
+        if accentedWord != None:
+            soundDiv = typeTd.find('div', class_='katsuyo_proc_button clearfix')
+            soundStr = soundDiv.find('a', class_='katsuyo_proc_female_button js_proc_female_button')['id']
+            # 把數字後兩位數截掉 前面加兩個0 再取後三位
+            soundStrNum = ('00' + str(math.floor(int(soundStr[0:soundStr.find('_')])/100)))[-3:]
+            soundUrl = 'http://www.gavo.t.u-tokyo.ac.jp/ojad/sound4/mp3/female/'+soundStrNum+'/'+soundStr+'.mp3'
+            try:
+                urllib.request.urlretrieve(soundUrl, download_dir + soundStr + '.mp3')
+                front_word += '[sound:'+soundStr+'.mp3]'
+            except urllib.error.HTTPError as err:
+                print('OJAD_err=', err)
+            front_word += accentedWord.get_text() + '<br>'
+    result['front_word'] = front_word
+    return result
+
+def getJishoMasu(tr, jisho_masu, front_word, download_dir):
+    back_word = ''
+
+    jisho_masuCnt = 0
+    for typeStr in ['jisho', 'masu']:
+        typeTd = tr.find('td', class_='katsuyo katsuyo_' + typeStr + '_js')
+        soundDiv = typeTd.find('div', class_='katsuyo_proc_button clearfix')
+        if soundDiv != None:
+            femaleButton = soundDiv.find('a', class_='katsuyo_proc_female_button js_proc_female_button')
+            if femaleButton != None:
+                soundStr = femaleButton['id']
+                # 把數字後兩位數截掉 前面加兩個0 再取後三位
+                soundStrNum = ('00' + str(math.floor(int(soundStr[0:soundStr.find('_')])/100)))[-3:]
+                soundUrl = 'http://www.gavo.t.u-tokyo.ac.jp/ojad/sound4/mp3/female/'+soundStrNum+'/'+soundStr+'.mp3'
+                try:
+                    urllib.request.urlretrieve(soundUrl, download_dir + soundStr + '.mp3')
+                    front_word += '[sound:'+soundStr+'.mp3]'
+                except urllib.error.HTTPError as err:
+                    print('OJAD_err=', err)
+                front_word += jisho_masu.split('・')[jisho_masuCnt] + '<br>'
+                jisho_masuCnt += 1
+    return front_word
 
 def getPartOfSpeechBlock(soup, sentenceCnt, front_word, back_word):
     meaning = []
@@ -32,33 +71,14 @@ def getPartOfSpeechBlock(soup, sentenceCnt, front_word, back_word):
         pos = HanziConv.toTraditional(pos)
         front_word += '(' + pos + ')<br>'
         back_word += '(' + pos + ')<br>'
+        # print(pos)
     meaning = getMeaning(soup)                              # list
     exampleSentence = getExampleSentence(soup, sentenceCnt) # dict
-    print(exampleSentence)
+    print('exampleSentence', exampleSentence)
     for i in range(0, len(meaning)):
         front_word += str(i+1) + '. ' + exampleSentence['JP'][i] + '<br>'
         back_word += str(i+1) + '. ' + meaning[i] + '<br>' + exampleSentence['CH'][i] + '<br>'
     return {'front_word': front_word, 'back_word': back_word}
-
-def getSoundAndTitle(soup, download_dir, word, differentWord):
-    output = ''
-    diffWordToken = ''
-    if differentWord > 1:
-        diffWordToken = '_' + str(differentWord)
-    print(' ')
-    print('<<' + word + diffWordToken + '>>')
-    print(' ')
-    pronouncesDiv = soup.find('div', class_ = 'pronounces')
-    if pronouncesDiv != None:
-        pronouncesSpan = pronouncesDiv.find('span', class_ = 'word-audio')
-        if pronouncesSpan != None:
-            soundUrl = pronouncesSpan['data-src']
-            try:
-                urllib.request.urlretrieve(soundUrl, download_dir + 'Jp_' + word + diffWordToken + '.mp3')
-                output = '[sound:Jp_' + word + diffWordToken + '.mp3]'
-            except urllib.error.HTTPError as err:
-                print('HJ_err=', err)
-    return output
 
 def getMeaning(soup):           # list
     output = []
@@ -69,6 +89,7 @@ def getMeaning(soup):           # list
             meaning = meaning.replace(chr(32), '')
             meaning = meaning.replace(chr(10), '')
             output.append(meaning)
+    # print(output)
     return output
 
 def getExampleSentence(soup, sentenceCnt):   # dict
@@ -100,22 +121,16 @@ def getExampleSentence(soup, sentenceCnt):   # dict
         if cnt == 0:
             output['JP'].append('')
             output['CH'].append('')
+    # print(output)
     return output
+
 
 def LookUp(word, data, download_dir):
     
     result = {}
     front_word = ''
     back_word = ''
-    reading = ''
-    furi = ''
-    furiChild = []
-    furiList = []
-    text = ''
-    textChild = []
-    textList = []
     cnt = 0
-    needHJSound = True
     sentenceCnt = 1
     differentWord = 1
 
@@ -128,18 +143,43 @@ def LookUp(word, data, download_dir):
     word = word.splitlines()[0]
     wordUrl = urllib.parse.quote(word, safe='')
 
+    ojad_Url = 'http://www.gavo.t.u-tokyo.ac.jp/ojad/search/index/word:{}'.format(wordUrl)
+    ojad_Content = urllib.request.urlopen(ojad_Url).read()
+    ojad_Soup = BeautifulSoup(ojad_Content, 'lxml')
+
     hj_Url = 'https://dict.hjenglish.com/jp/jc/{}'.format(wordUrl)
     hj_Content = urllib.request.urlopen(hj_Url).read()
     hj_Soup = BeautifulSoup(hj_Content, 'lxml')
 
     if word == '':
         return None
-    # print(hj_Soup)
+    
+    print(' ')
+    print('<<' + word + '>>')
+    print(' ')
+
+    searchResult = ojad_Soup.find('div', id='search_result')
+    table = searchResult.find('table', id='word_table', class_='draggable')
+
+    tbody = table.find('tbody')
+    tbodyTr = tbody.find('tr') # The default value of tbodyTr is the first row (first <tr>)  
+    for tbodyTrIter in tbody.find_all('tr'):
+        midashi = tbodyTrIter.find('td', class_='midashi')
+        if midashi == None:
+            continue
+        midashiWrapper = midashi.find('div', class_='midashi_wrapper')
+        jisho_masu = midashiWrapper.get_text()
+        jisho_masu = jisho_masu.split(chr(10))[1]
+        if word == jisho_masu.split('・')[0] or word == jisho_masu.split('・')[1]:
+            tbodyTr = tbodyTrIter
+            break
+    # front_word = getVerb(tbodyTr, ['jisho', 'masu', 'te', 'ta', 'nai', 'nakatta', 'ba', 'shieki', 'ukemi', 'meirei', 'kano', 'ishi'], front_word, download_dir)
+    # front_word = getVerb(tbodyTr, ['jisho', 'masu'], front_word, download_dir)
+    front_word = getJishoMasu(tbodyTr, jisho_masu, front_word, download_dir)
+
     wordDetailsContent = hj_Soup.find('section', class_ = 'word-details-content')
     if wordDetailsContent != None:
         for wordDetailsPane in wordDetailsContent.find_all('div', class_ = 'word-details-pane'):
-            word = getWord(wordDetailsPane)
-            front_word += getSoundAndTitle(wordDetailsPane, download_dir, word, differentWord) + word + '<br>'
             detailGroups = wordDetailsPane.find('section', class_ = 'detail-groups')
             if detailGroups != None:
                 for posSoup in detailGroups.find_all('dl'):
@@ -158,3 +198,4 @@ def LookUp(word, data, download_dir):
         print('<< Word not found!!! >>')
         print(' ')
         return None
+

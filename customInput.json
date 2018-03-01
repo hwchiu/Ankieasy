@@ -2,6 +2,14 @@
     "collection":"C:/Users/Yu-Hsien/AppData/Roaming/Anki2/YuHsien/collection.anki2",
     "cards": 
     [
+        {
+	        "deck":"日文",
+            "card_type":"japanse_recognition_recall",
+            "content": 
+            [
+                
+            ]
+        },
  	 	{
 	        "deck":"日文句子",
             "card_type":"japanse_recognition_recall",

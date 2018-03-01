@@ -1,6 +1,7 @@
 import urllib.request
 from urllib.parse import quote
 from bs4 import BeautifulSoup
+import ssl
 import subprocess
 import platform
 import datetime
@@ -15,6 +16,7 @@ def LookUp(word, data, download_dir):
     opener=urllib.request.build_opener()
     opener.addheaders=[('User-Agent','Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1941.0 Safari/537.36')]
     urllib.request.install_opener(opener)
+    ssl._create_default_https_context = ssl._create_unverified_context
     
     content = urllib.request.urlopen(url).read()
     soup = BeautifulSoup(content, 'lxml')
@@ -28,12 +30,6 @@ def LookUp(word, data, download_dir):
     wrongSpelling = soup.find('div', class_='compText mb-15 fz-m fc-4th')
     if wrongSpelling is not None:
         return None
-
-
-    # If there is a typo, maybe the Yahoo dict will detect
-    checkTypo = soup.find('span', id='term').get_text()
-    if checkTypo != word:
-        word = checkTypo
 
     print(' ')
     print('<<'+word+'>>')
