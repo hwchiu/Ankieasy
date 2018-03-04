@@ -15,91 +15,107 @@ _unicode_chr_splitter = _Re( '(?s)((?:[\u2e80-\u9fff])|.)' ).split
 
 def getWord(soup):
     output = ''
-    wordText = soup.find('div', class_='word-text')
-    h2 = wordText.find('h2')
-    if h2 != None:
-        output = h2.get_text()
+    explainWord = soup.find('h1', class_ = 'explain-Word')
+    if explainWord != None:
+        word = explainWord.find('span', class_ = 'word')
+        if word != None:
+            output = word.get_text()
     return output
 
-def getPartOfSpeechBlock(soup, sentenceCnt, front_word, back_word):
-    meaning = []
-    exampleSentence = {}
-    dt = soup.find('dt')
-    if dt != None:
-        pos = dt.get_text()
-        pos = pos.replace(chr(32), '')
-        pos = pos.replace(chr(10), '')
-        pos = HanziConv.toTraditional(pos)
-        front_word += '(' + pos + ')<br>'
-        back_word += '(' + pos + ')<br>'
-    meaning = getMeaning(soup)                              # list
-    exampleSentence = getExampleSentence(soup, sentenceCnt) # dict
-    print(exampleSentence)
-    for i in range(0, len(meaning)):
-        front_word += str(i+1) + '. ' + exampleSentence['JP'][i] + '<br>'
-        back_word += str(i+1) + '. ' + meaning[i] + '<br>' + exampleSentence['CH'][i] + '<br>'
-    return {'front_word': front_word, 'back_word': back_word}
-
-def getSoundAndTitle(soup, download_dir, word, differentWord):
+def getSoundAndTitle(soup, download_dir, word):
     output = ''
-    diffWordToken = ''
-    if differentWord > 1:
-        diffWordToken = '_' + str(differentWord)
-    print(' ')
-    print('<<' + word + diffWordToken + '>>')
-    print(' ')
-    pronouncesDiv = soup.find('div', class_ = 'pronounces')
-    if pronouncesDiv != None:
-        pronouncesSpan = pronouncesDiv.find('span', class_ = 'word-audio')
-        if pronouncesSpan != None:
-            soundUrl = pronouncesSpan['data-src']
-            try:
-                urllib.request.urlretrieve(soundUrl, download_dir + 'Jp_' + word + diffWordToken + '.mp3')
-                output = '[sound:Jp_' + word + diffWordToken + '.mp3]'
-            except urllib.error.HTTPError as err:
-                print('FR_err=', err)
+    phonticLine = soup.find('span', class_ = 'phonitic-line')
+    if phonticLine != None:
+        sound = phonticLine.find('a', class_ = 'voice-js voice-button')
+        dataRel = sound['data-rel']
+        soundUrl = 'http://api.frdic.com/api/v2/speech/speakweb?{}'.format(dataRel)
+        try:
+            urllib.request.urlretrieve(soundUrl, '{}Fr_{}.mp3'.format(download_dir, word))
+            output = '[sound:Fr_{}.mp3]'.format(word)
+        except urllib.error.HTTPError as err:
+            print('FR_err=', err)
     return output
 
-def getMeaning(soup):           # list
+def getContentDict(soup):
     output = []
-    for dd in soup.find_all('dd'):
-        h3 = dd.find('h3')
-        if h3 != None:
-            meaning = h3.get_text()
-            meaning = meaning.replace(chr(32), '')
-            meaning = meaning.replace(chr(10), '')
-            output.append(meaning)
+    caraCnt = -1
+    cursorNow = ''
+    bs4Comment = BeautifulSoup('<b><!----></b>', "lxml").b.string
+    bs4NaviStr = BeautifulSoup('<b>1</b>', "lxml").b.string
+
+
+    expDiv = soup.find('div', class_ = 'expDiv')
+    # modify expDiv
+    commonUse = expDiv.find('b', string = '常见用法')
+    if commonUse != None:
+        element = commonUse
+        while element != None:
+            if type(element) != type(bs4Comment) and type(element) != type(bs4NaviStr):
+                element.clear()
+            element = element.next_sibling
+    for span in expDiv.find_all('span', recursive = False):
+        if span.has_attr('class'):
+            if span['class'][0] == 'cara': # Part of speech
+                cursorNow = 'cara'
+                caraCnt += 1
+                contentCnt = 0
+                caraDict = dict(cara = span.find_all(text = True, recursive = False), content = [])
+                output.append(caraDict)
+            if span['class'][0] == 'exp':  # meaning
+                if cursorNow == 'exp':
+                    print("the <class='exp'> previous <span> can't be <class='exp'>")
+                    output[caraCnt]['content'].pop()
+                cursorNow = 'exp'
+                conDict = dict(exp = span.find_all(text = True, recursive = False), eg = '')
+                output[caraCnt]['content'].append(conDict)
+            if span['class'][0] == 'eg':   # example sentence
+                if cursorNow == 'eg':
+                    print("the <class='eg'> previous <span> can't be <class='eg'>")
+                    continue
+                cursorNow = 'eg'
+                output[caraCnt]['content'][contentCnt]['eg'] = span.find_all(text = True, recursive = False)
+                contentCnt += 1
+    # print(output)
     return output
 
-def getExampleSentence(soup, sentenceCnt):   # dict
+def contentTruncation(caraList):
+    output = caraList
+    for cara in output:
+        for content in cara['content']:
+            if len(content['exp']) > 0:
+                content['exp'] = [content['exp'][-1]]
+            if len(content['eg']) > 0:
+                # content['eg'] = [content['eg'][0]] # customized the number of example sentence
+                frenchPart = ''
+                chinesePart = ''
+                breakIdx = 0
+                splitList = _unicode_chr_splitter(content['eg'][0])
+                for i in range(0, len(splitList)):
+                    if len(splitList[i]) > 0 and ord(splitList[i]) > 10000: 
+                        breakIdx = i
+                        break
+                for i in range(0, len(splitList)):
+                    if i < breakIdx:
+                        frenchPart += splitList[i]
+                    else:
+                        chinesePart += splitList[i]
+                content['eg'] = dict(FR = frenchPart, CH = chinesePart)
+            else:
+                content['eg'] = dict(FR = '', CH = '')
+
+    # print(output)
+    return output
+
+def makeCard(TrunCaraList, front_word, back_word):
     output = {}
-    output['JP'] = []
-    output['CH'] = []
-    sentenceJP = ''
-    sentenceCH = ''
-    for dd in soup.find_all('dd'):
-        ul = dd.find('ul')
-        if ul != None:
-            cnt = 0
-            for li in ul.find_all('li'):
-                pJP = li.find('p', class_ = 'def-sentence-from')
-                pCH = li.find('p', class_ = 'def-sentence-to')
-                if pJP != None:
-                    sentenceJP = pJP.get_text()
-                    sentenceJP = sentenceJP.replace(chr(32), '')
-                    sentenceJP = sentenceJP.replace(chr(10), '')
-                if pCH != None:
-                    sentenceCH = pCH.get_text()
-                    sentenceCH = sentenceCH.replace(chr(32), '')
-                    sentenceCH = sentenceCH.replace(chr(10), '')
-                output['JP'].append(sentenceJP)
-                output['CH'].append(sentenceCH)
-                cnt += 1
-                if cnt == sentenceCnt:
-                    break
-        if cnt == 0:
-            output['JP'].append('')
-            output['CH'].append('')
+    for cara in TrunCaraList:
+        front_word += '({})<br>'.format(cara['cara'][0])
+        back_word += '({})<br>'.format(cara['cara'][0])
+        for content in cara['content']:
+            front_word += '{}<br>'.format(content['eg']['FR'])
+            back_word += '{}<br>{}<br>'.format(content['exp'][0], content['eg']['CH'])
+    output['front_word'] = front_word
+    output['back_word'] = HanziConv.toTraditional(back_word)
     return output
 
 def LookUp(word, data, download_dir):
@@ -134,19 +150,13 @@ def LookUp(word, data, download_dir):
     if word == '':
         return None
     # print(fr_Soup)
-    expDiv = fr_Soup.find('div', class_ = 'expDiv')
-    for pos in expDiv.find_all('span', class_ = 'cara'): # Part of speech
-        print('cara', pos.get_text('\n'))
-        # for child in pos.children:
-        #     print(child)
-    for meaning in expDiv.find_all('span', class_ = 'exp'):  # meaning
-        print('exp', meaning.get_text('\n'))
-        # for child in meaning.children:
-        #     print(child)
-    for exampleSentence in expDiv.find_all('span', class_ = 'eg'):   # example sentence
-        print('eg', exampleSentence.get_text('\n'))
-        # for child in exampleSentence.children:
-        #     print(child)
-    
-    return None
+    word = getWord(fr_Soup)
+    print(' ')
+    print('<<' + word + '>>')
+    print(' ')
+    front_word = '{}{}<br>'.format(getSoundAndTitle(fr_Soup, download_dir, word), word)
+    caraList = getContentDict(fr_Soup)
+    TrunCaraList = contentTruncation(caraList)
+    result = makeCard(TrunCaraList, front_word, back_word)
+    return result
     
