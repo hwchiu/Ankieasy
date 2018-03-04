@@ -9,7 +9,6 @@ import datetime
 import json
 import re
 import math
-from pyquery import PyQuery as pq
 from hanziconv import HanziConv # https://pypi.python.org/pypi/hanziconv/0.2.1
 from re import compile as _Re
 
