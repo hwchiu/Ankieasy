@@ -82,9 +82,9 @@ def getPartOfSpeechBlock(soup, sentenceCnt, front_word, back_word):
 def getMeaning(soup):           # list
     output = []
     for dd in soup.find_all('dd'):
-        h3 = dd.find('h3')
-        if h3 != None:
-            meaning = h3.get_text()
+        pContent = dd.find_all('p')
+        if pContent[1] != None:
+            meaning = pContent[1].get_text()
             meaning = meaning.replace(chr(32), '')
             meaning = meaning.replace(chr(10), '')
             output.append(meaning)
