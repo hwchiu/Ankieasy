@@ -56,35 +56,47 @@ def getMeaning(soup):
     posDict = ''
     cardDict = []
     explainTab = soup.find('div', class_='grp grp-tab-content-explanation tabsContent tab-content-explanation tabActived')
-    ul = explainTab.ul
-    for li in ul.find_all('li'):
-        divIsPOS = li.find('div', class_=' tabs-pos_type fz-14')
-        spanIsMeaning = li.find('span', class_=' fz-14')
-        if divIsPOS != None:
-            if not isinstance(posDict, str):
-                cardDict.append(posDict)
-            posString = '({})'.format(divIsPOS.get_text())
-            # print(posString)
-            posDict = dict(pos = posString, meaningArray = [])
-        elif spanIsMeaning != None:
-            exampleSentence = ''
-            if li.p != None:
-                exampleSentence = li.p.span.get_text()
-            splitList = _unicode_chr_splitter(exampleSentence)    
-            englishPart = ''
-            chinesePart = ''
-            for i in range(0, len(splitList)):
-                if len(splitList[i]) > 0 and ord(splitList[i]) > 10000: 
-                    breakIdx = i
-                    break
-            for i in range(0, len(splitList)):
-                if i < breakIdx:
-                    englishPart += splitList[i]
-                else:
-                    chinesePart += splitList[i]
-            meaningDict = dict(meaning = spanIsMeaning.get_text(), english = englishPart, chinese = chinesePart)
+    if explainTab != None:
+        ul = explainTab.ul
+        for li in ul.find_all('li'):
+            divIsPOS = li.find('div', class_=' tabs-pos_type fz-14')
+            spanIsMeaning = li.find('span', class_=' fz-14')
+            if divIsPOS != None:
+                if not isinstance(posDict, str):
+                    cardDict.append(posDict)
+                posString = '({})'.format(divIsPOS.get_text())
+                # print(posString)
+                posDict = dict(pos = posString, meaningArray = [])
+            elif spanIsMeaning != None:
+                exampleSentence = ''
+                if li.p != None:
+                    exampleSentence = li.p.span.get_text()
+                splitList = _unicode_chr_splitter(exampleSentence)    
+                englishPart = ''
+                chinesePart = ''
+                breakIdx = 0
+                for i in range(0, len(splitList)):
+                    if len(splitList[i]) > 0 and ord(splitList[i]) > 10000: 
+                        breakIdx = i
+                        break
+                for i in range(0, len(splitList)):
+                    if i < breakIdx:
+                        englishPart += splitList[i]
+                    else:
+                        chinesePart += splitList[i]
+                meaningDict = dict(meaning = spanIsMeaning.get_text(), english = englishPart, chinese = chinesePart)
+                posDict['meaningArray'].append(meaningDict)
+        cardDict.append(posDict)
+    else:
+        dictionaryWordCard = soup.find('div', class_ = 'dd cardDesign dictionaryWordCard sys_dict_word_card')
+        compList = dictionaryWordCard.find('div', class_ = 'compList mb-25 ml-25 p-rel')
+        for li in compList.ul.find_all('li'):
+            pos = li.find('div', class_ = ' pos_button fz-14 fl-l mr-12').get_text()
+            meaning = li.find('div', class_ = ' fz-16 fl-l dictionaryExplanation').get_text()
+            posDict = dict(pos = pos, meaningArray = [])
+            meaningDict = dict(meaning = meaning, english = '', chinese = '')
             posDict['meaningArray'].append(meaningDict)
-    cardDict.append(posDict)
+            cardDict.append(posDict)
     return cardDict
 
 def fillInResult(cardDict, front_word, back_word):
@@ -129,6 +141,13 @@ def LookUp(word, data, download_dir):
     print(' ')
     print('<<' + word + '>>')
     print(' ')
+
+    notFound = soup.find('div', class_ = 'dd cardDesign pt-25 pb-25 pl-120 pr-120 sys_dict_zrp')
+    if notFound != None:
+        print(' ')
+        print('<< word not found!!! >>')
+        print(' ')
+        return None
 
     front_word = getRealWord(soup, front_word)
     front_word = getCBSound(CBSoup, front_word, word, download_dir)
