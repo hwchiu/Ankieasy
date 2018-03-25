@@ -15,6 +15,13 @@ def LookUp(word, data, download_dir):
     wordUrl = urllib.parse.quote(word, safe='')
     wordUrl = wordUrl.replace('%20','-')
     wordUrl = wordUrl.replace('%27','-')
+    wordUrl = wordUrl.replace('%28','-')
+    wordUrl = wordUrl.replace('%29','-')
+    wordUrl = wordUrl.replace('%2F','-')
+    wordUrl = wordUrl.replace('--','-')
+    if wordUrl[-1] == '-':
+        wordUrl = wordUrl[:-1]
+    
     url='https://dictionary.cambridge.org/us/dictionary/english/{}'.format(wordUrl)
 
     opener=urllib.request.build_opener()
