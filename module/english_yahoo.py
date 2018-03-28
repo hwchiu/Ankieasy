@@ -44,12 +44,12 @@ def getSound(soup, front_word, word, download_dir):
     soundSpan = dictionaryWordCard.find('span', class_ = 'dict-sound')
     if soundSpan != None:
         soundAudio = soundSpan.find('audio')
-        print(soundAudio)
-        try:
-            urllib.request.urlretrieve('', '{}Eng_{}.mp3'.format(download_dir, word))
-            front_word += '[sound:Eng_{}.mp3]<br>'.format(word)
-        except urllib.error.HTTPError as err:
-            print('Eng_err=', err)
+        print('soundAudio', soundAudio)
+        # try:
+        #     urllib.request.urlretrieve('', '{}Eng_{}.mp3'.format(download_dir, word))
+        #     front_word += '[sound:Eng_{}.mp3]<br>'.format(word)
+        # except urllib.error.HTTPError as err:
+        #     print('Eng_err=', err)
     return front_word
 
 def getMeaning(soup):
@@ -93,7 +93,7 @@ def getMeaning(soup):
         for li in compList.ul.find_all('li'):
             pos = li.find('div', class_ = ' pos_button fz-14 fl-l mr-12').get_text()
             meaning = li.find('div', class_ = ' fz-16 fl-l dictionaryExplanation').get_text()
-            posDict = dict(pos = pos, meaningArray = [])
+            posDict = dict(pos = '({})'.format(pos), meaningArray = [])
             meaningDict = dict(meaning = meaning, english = '', chinese = '')
             posDict['meaningArray'].append(meaningDict)
             cardDict.append(posDict)
@@ -126,6 +126,13 @@ def LookUp(word, data, download_dir):
     
     content = urllib.request.urlopen(url).read()
     soup = BeautifulSoup(content, 'lxml')
+
+    wordUrl = wordUrl.replace('%20','-')
+    wordUrl = wordUrl.replace('%27','-')
+    wordUrl = wordUrl.replace('%28','-')
+    wordUrl = wordUrl.replace('%29','-')
+    wordUrl = wordUrl.replace('%2F','-')
+    wordUrl = wordUrl.replace('--','-')
 
     url='https://dictionary.cambridge.org/us/dictionary/english/{}'.format(wordUrl)
     content = urllib.request.urlopen(url).read()
