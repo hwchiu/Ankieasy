@@ -19,7 +19,7 @@ def getRealWord(soup, front_word):
 def getCBSound(soup, front_word, word, download_dir):
     tabEntry = soup.find('div', class_='tabs tabs-entry js-tabs-wrap js-toc')
     if tabEntry is None:
-        return None
+        return front_word
 
     english = tabEntry.find('div', class_='tabs__content on', attrs={'data-tab': 'ds-american-english'})
     if english is None:
