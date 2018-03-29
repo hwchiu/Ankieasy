@@ -17,17 +17,12 @@ def getRealWord(soup, front_word):
     return front_word
 
 def getCBSound(soup, front_word, word, download_dir):
-    tabEntry = soup.find('div', class_='tabs tabs-entry js-tabs-wrap js-toc')
+    tabEntry = soup.find('div', class_ = 'entrybox english')
     if tabEntry is None:
+        print("<< CBSound Not Found !!! >>")
         return front_word
 
-    english = tabEntry.find('div', class_='tabs__content on', attrs={'data-tab': 'ds-american-english'})
-    if english is None:
-        english = tabEntry.find('div', class_='tabs__content on', attrs={'data-tab': 'ds-british'})
-        if english is None:
-            english = tabEntry.find('div', class_='tabs__content on', attrs={'data-tab': 'ds-business-english'})
-
-    partOfSpeech = english.find_all('div', class_='entry-body__el clrd js-share-holder')
+    partOfSpeech = tabEntry.find_all('div', class_='entry-body__el clrd js-share-holder')
     sound = partOfSpeech[0].find('span', attrs={'data-src-mp3':True})
 
     if sound is not None and bool(download_dir) != False:
@@ -36,6 +31,7 @@ def getCBSound(soup, front_word, word, download_dir):
             front_word = '[sound:Py_{}.mp3]'.format(word) + front_word
         except urllib.error.HTTPError as err:
             print("HTTP Error:", err)
+
     return front_word
 
 def getSound(soup, front_word, word, download_dir):
