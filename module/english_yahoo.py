@@ -87,8 +87,14 @@ def getMeaning(soup):
         dictionaryWordCard = soup.find('div', class_ = 'dd cardDesign dictionaryWordCard sys_dict_word_card')
         compList = dictionaryWordCard.find('div', class_ = 'compList mb-25 ml-25 p-rel')
         for li in compList.ul.find_all('li'):
-            pos = li.find('div', class_ = ' pos_button fz-14 fl-l mr-12').get_text()
-            meaning = li.find('div', class_ = ' fz-16 fl-l dictionaryExplanation').get_text()
+            pos = ''
+            posDiv = li.find('div', class_ = ' pos_button fz-14 fl-l mr-12')
+            if posDiv != None:
+                pos = posDiv.get_text()
+            meaning = ''
+            meaningDiv = li.find('div', class_ = ' fz-16 fl-l dictionaryExplanation')
+            if meaningDiv != None:
+                meaning = meaningDiv.get_text()
             posDict = dict(pos = '({})'.format(pos), meaningArray = [])
             meaningDict = dict(meaning = meaning, english = '', chinese = '')
             posDict['meaningArray'].append(meaningDict)
