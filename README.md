@@ -1,6 +1,6 @@
 Introduction
 ============
-AnkiEasy can help you to add a bstch of words into your Anki deck.
+AnkiEasy can help you to add a batch of words into your Anki deck.
 You only prepare the words you want to learn and modify the config file and AnkiEasy will lookup those words and make a anki card and insert into your Anki deck.
 
 
