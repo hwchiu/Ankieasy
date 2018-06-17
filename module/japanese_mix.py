@@ -8,6 +8,7 @@ import platform
 import datetime
 import json
 import re
+import base64
 from hanziconv import HanziConv # https://pypi.python.org/pypi/hanziconv/0.2.1
 from re import compile as _Re
 
@@ -40,24 +41,70 @@ def getPartOfSpeechBlock(soup, sentenceCnt, front_word, back_word):
         back_word += str(i+1) + '. ' + meaning[i] + '<br>' + exampleSentence['CH'][i] + '<br>'
     return {'front_word': front_word, 'back_word': back_word}
 
-def getSoundAndTitle(soup, download_dir, word, differentWord):
-    output = ''
-    diffWordToken = ''
-    if differentWord > 1:
-        diffWordToken = '_' + str(differentWord)
-    print(' ')
-    print('<<' + word + diffWordToken + '>>')
-    print(' ')
-    pronouncesDiv = soup.find('div', class_ = 'pronounces')
-    if pronouncesDiv != None:
-        pronouncesSpan = pronouncesDiv.find('span', class_ = 'word-audio')
-        if pronouncesSpan != None:
-            soundUrl = pronouncesSpan['data-src']
-            try:
-                urllib.request.urlretrieve(soundUrl, download_dir + 'Jp_' + word + diffWordToken + '.mp3')
-                output = '[sound:Jp_' + word + diffWordToken + '.mp3]'
-            except urllib.error.HTTPError as err:
-                print('HJ_err=', err)
+def getSoundUrl(playStr):
+    url = ''
+    removeReturn = playStr.split(';')[0]
+    removeRightParenthesis = removeReturn.split(')')[0]
+    removeLeftParenthesis = removeRightParenthesis.split('(')[1]
+    paramGroup = removeLeftParenthesis.split(',')
+    newParamGroup = []
+    for param in paramGroup:
+        if param[0] == "'" and param[-1] == "'": # If the string is embraced by single quote,
+            param = param[1:-1]                  # Remove the single quotes
+        newParamGroup.append(param)
+    if newParamGroup[4] != '':
+        url = 'https://audio00.forvo.com/audios/mp3/{}'.format(base64.b64decode(newParamGroup[4]).decode('ascii'))
+    elif newParamGroup[1] != '':
+        url = 'https://audio00.forvo.com/mp3/{}'.format(base64.b64decode(newParamGroup[1]).decode('ascii'))
+    return url
+
+def getForvoSound(soup, download_dir, word):
+    section = soup.find('section', class_='main_section')
+    articleJP = ''
+    articleList = section.find_all('article', class_='pronunciations')
+    for article in articleList:
+        if article.find('header') != None:
+            if article.find('header').find('em') != None:
+                if article.find('header').find('em').get('id') != None:
+                    if article.find('header').find('em')['id'] == 'ja':
+                        articleJP = article
+                        break
+    ul = articleJP.find('ul')
+    liGroup = ul.find_all('li')
+    authorList = []
+    soundUrlList = []
+    for li in liGroup:
+        author = ''
+        soundUrl = ''
+        spanPlay = li.find('span', class_='play')
+        spanOfLink = li.find('span', class_='ofLink')
+        if spanPlay != None and spanOfLink != None:
+            spanOnClick = spanPlay['onclick']
+            soundUrl = getSoundUrl(spanOnClick)
+            author = spanOfLink['data-p2']
+            authorList.append(author)
+            soundUrlList.append(soundUrl)
+    finalAuthor = ''
+    finalSoundUrl = ''
+    getAuthorInRecommendedList = False
+    if 'strawberrybrown' in authorList:
+        finalAuthor = 'strawberrybrown'
+        finalSoundUrl = soundUrlList[authorList.index('strawberrybrown')]
+    else:
+        for author in authorList:
+            if author in ['skent', 'akitomo', 'kaoring', 'kyokotokyojapan', 'kiiro', 'yasuo', 'sorechaude', 'Phlebia']:
+                finalAuthor = author
+                finalSoundUrl = soundUrlList[authorList.index(author)]
+                getAuthorInRecommendedList = True
+                break
+        if getAuthorInRecommendedList == False:
+            finalAuthor = authorList[0]
+            finalSoundUrl = soundUrlList[0]
+    try:
+        urllib.request.urlretrieve(finalSoundUrl, download_dir + 'Jp_' + word + '.mp3')
+        output = '[sound:Jp_' + word + '.mp3]'
+    except urllib.error.HTTPError as err:
+        print('Forvo_err=', err)
     return output
 
 def getMeaning(soup):           # list
@@ -127,20 +174,30 @@ def LookUp(word, data, download_dir):
 
     # Eliminate the end of line delimiter
     word = word.splitlines()[0]
-    wordUrl = urllib.parse.quote(word, safe='')
-
-    hj_Url = 'https://dict.hjenglish.com/jp/jc/{}'.format(wordUrl)
-    hj_Content = urllib.request.urlopen(hj_Url).read()
-    hj_Soup = BeautifulSoup(hj_Content, 'lxml')
-
     if word == '':
         return None
-    # print(hj_Soup)
+    wordUrlEncode = urllib.parse.quote(word, safe='')
+
+    hj_Url = 'https://dict.hjenglish.com/jp/jc/{}'.format(wordUrlEncode)
+    hj_Content = urllib.request.urlopen(hj_Url).read()
+    hj_Soup = BeautifulSoup(hj_Content, 'lxml')
+    
+    Forvo_Soup = BeautifulSoup('<tag>123</tag>', 'lxml')
+    Forvo_Url = 'https://forvo.com/word/{}/#ja'.format(wordUrlEncode)
+    try:
+        Forvo_Content = urllib.request.urlopen(Forvo_Url).read()
+        Forvo_Soup = BeautifulSoup(Forvo_Content, 'lxml')
+    except:
+        print(' ')
+        print('<< Forvo word not found!!! >>')
+        print(' ')
+        return None
+
     wordDetailsContent = hj_Soup.find('section', class_ = 'word-details-content')
     if wordDetailsContent != None:
         for wordDetailsPane in wordDetailsContent.find_all('div', class_ = 'word-details-pane'):
             word = getWord(wordDetailsPane)
-            front_word += getSoundAndTitle(wordDetailsPane, download_dir, word, differentWord) + word + '<br>'
+            front_word += getForvoSound(Forvo_Soup, download_dir, word) + word + '<br>'
             detailGroups = wordDetailsPane.find('section', class_ = 'detail-groups')
             if detailGroups != None:
                 for posSoup in detailGroups.find_all('dl'):

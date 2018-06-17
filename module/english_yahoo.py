@@ -86,19 +86,22 @@ def getMeaning(soup):
     else:
         dictionaryWordCard = soup.find('div', class_ = 'dd cardDesign dictionaryWordCard sys_dict_word_card')
         compList = dictionaryWordCard.find('div', class_ = 'compList mb-25 ml-25 p-rel')
-        for li in compList.ul.find_all('li'):
-            pos = ''
-            posDiv = li.find('div', class_ = ' pos_button fz-14 fl-l mr-12')
-            if posDiv != None:
-                pos = posDiv.get_text()
-            meaning = ''
-            meaningDiv = li.find('div', class_ = ' fz-16 fl-l dictionaryExplanation')
-            if meaningDiv != None:
-                meaning = meaningDiv.get_text()
-            posDict = dict(pos = '({})'.format(pos), meaningArray = [])
-            meaningDict = dict(meaning = meaning, english = '', chinese = '')
-            posDict['meaningArray'].append(meaningDict)
-            cardDict.append(posDict)
+        if compList == None:
+            return None
+        else:
+            for li in compList.ul.find_all('li'):
+                pos = ''
+                posDiv = li.find('div', class_ = ' pos_button fz-14 fl-l mr-12')
+                if posDiv != None:
+                    pos = posDiv.get_text()
+                meaning = ''
+                meaningDiv = li.find('div', class_ = ' fz-16 fl-l dictionaryExplanation')
+                if meaningDiv != None:
+                    meaning = meaningDiv.get_text()
+                posDict = dict(pos = '({})'.format(pos), meaningArray = [])
+                meaningDict = dict(meaning = meaning, english = '', chinese = '')
+                posDict['meaningArray'].append(meaningDict)
+                cardDict.append(posDict)
     return cardDict
 
 def fillInResult(cardDict, front_word, back_word):
@@ -162,6 +165,11 @@ def LookUp(word, data, download_dir):
     front_word = getCBSound(CBSoup, front_word, word, download_dir)
     # front_word = getSound(soup, front_word, word, download_dir)
     cardDict = getMeaning(soup)
+    if cardDict == None:
+        print(' ')
+        print('<< meaning not found!!! >>')
+        print(' ')
+        return None
     result = fillInResult(cardDict, front_word, back_word)
     
     print(result)
