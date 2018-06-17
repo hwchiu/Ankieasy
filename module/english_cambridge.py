@@ -15,6 +15,13 @@ def LookUp(word, data, download_dir):
     wordUrl = urllib.parse.quote(word, safe='')
     wordUrl = wordUrl.replace('%20','-')
     wordUrl = wordUrl.replace('%27','-')
+    wordUrl = wordUrl.replace('%28','-')
+    wordUrl = wordUrl.replace('%29','-')
+    wordUrl = wordUrl.replace('%2F','-')
+    wordUrl = wordUrl.replace('--','-')
+    if wordUrl[-1] == '-':
+        wordUrl = wordUrl[:-1]
+    
     url='https://dictionary.cambridge.org/us/dictionary/english/{}'.format(wordUrl)
 
     opener=urllib.request.build_opener()
@@ -35,27 +42,28 @@ def LookUp(word, data, download_dir):
     if word == '':
         return None
 
-    tabEntry = soup.find('div', class_='tabs tabs-entry js-tabs-wrap js-toc')
-    if tabEntry is None:
+    entryBox = soup.find('div', class_ = 'entrybox english')
+    if entryBox is None:
         return None
-
-    english = tabEntry.find('div', class_='tabs__content on', attrs={'data-tab': 'ds-american-english'})
-    if english is None:
-        english = tabEntry.find('div', class_='tabs__content on', attrs={'data-tab': 'ds-british'})
-        if english is None:
-            english = tabEntry.find('div', class_='tabs__content on', attrs={'data-tab': 'ds-business-english'})
-
-    partOfSpeech = english.find_all('div', class_='entry-body__el clrd js-share-holder')
-    sound = partOfSpeech[0].find('span', attrs={'data-src-mp3':True})
-
-    if sound is not None and bool(download_dir) != False:
-        try:
-            urllib.request.urlretrieve(sound['data-src-mp3'], download_dir+'Py_'+word+'.mp3')
-            front_word = '[sound:Py_'+word+'.mp3]' + front_word
-        except urllib.error.HTTPError as err:
-            print("HTTP Error:", err)
-
+    englishTab = entryBox.find('div', id = 'dataset-american-english')
+    if englishTab is None:
+        englishTab = entryBox.find('div', id = 'dataset-british')
+    elif englishTab is None:
+        englishTab = entryBox.find('div', id = 'dataset-business-english')
+    elif englishTab is None:
+        return None
+    
+    partOfSpeech = englishTab.find_all('div', class_='entry-body__el clrd js-share-holder')
     for i in range(0,len(partOfSpeech)):
+        sound = partOfSpeech[i].find('span', attrs={'data-src-mp3':True})
+
+        if sound is not None and bool(download_dir) != False:
+            try:
+                urllib.request.urlretrieve(sound['data-src-mp3'], download_dir+'Py_'+word+'.mp3')
+                front_word = '[sound:Py_'+word+'.mp3]' + front_word
+            except urllib.error.HTTPError as err:
+                print("HTTP Error:", err)
+        
         posgram = partOfSpeech[i].find('span', class_='posgram ico-bg')
         if posgram is not None:
             pos = posgram.find('span').get_text() # get POS
@@ -75,7 +83,7 @@ def LookUp(word, data, download_dir):
                 if explain[-2] == ':':
                     tmp = explain[:-2]
                     explain = tmp + '.'     # Replace the colon to dot
-                if len(senseBlock) != 1:    # If the part of speech has more than one meaning, number the meaning list
+                if len(defBlock) != 1:    # If the part of speech has more than one meaning, number the meaning list
                     front_word += str(cnt) + '. '
                     back_word += str(cnt) + '. '
                 back_word += explain + '<br>'

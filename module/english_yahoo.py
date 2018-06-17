@@ -6,6 +6,117 @@ import subprocess
 import platform
 import datetime
 import json
+import re
+from re import compile as _Re
+
+_unicode_chr_splitter = _Re( '(?s)((?:[\u2e80-\u9fff])|.)' ).split
+
+def getRealWord(soup, front_word):
+    word = soup.find('div', class_ = 'compTitle mt-25 ml-25 mb-10').h3.get_text()
+    front_word += '{}<br>'.format(word)
+    return front_word
+
+def getCBSound(soup, front_word, word, download_dir):
+    tabEntry = soup.find('div', class_ = 'entrybox english')
+    if tabEntry is None:
+        print("<< CBSound Not Found !!! >>")
+        return front_word
+
+    partOfSpeech = tabEntry.find_all('div', class_='entry-body__el clrd js-share-holder')
+    sound = partOfSpeech[0].find('span', attrs={'data-src-mp3':True})
+
+    if sound is not None and bool(download_dir) != False:
+        try:
+            urllib.request.urlretrieve(sound['data-src-mp3'], '{}Py_{}.mp3'.format(download_dir, word))
+            front_word = '[sound:Py_{}.mp3]'.format(word) + front_word
+        except urllib.error.HTTPError as err:
+            print("HTTP Error:", err)
+
+    return front_word
+
+def getSound(soup, front_word, word, download_dir):
+    dictionaryWordCard = soup.find('div', class_ = 'dictionaryWordCard')
+    print(dictionaryWordCard)
+    soundSpan = dictionaryWordCard.find('span', class_ = 'dict-sound')
+    if soundSpan != None:
+        soundAudio = soundSpan.find('audio')
+        print('soundAudio', soundAudio)
+        # try:
+        #     urllib.request.urlretrieve('', '{}Eng_{}.mp3'.format(download_dir, word))
+        #     front_word += '[sound:Eng_{}.mp3]<br>'.format(word)
+        # except urllib.error.HTTPError as err:
+        #     print('Eng_err=', err)
+    return front_word
+
+def getMeaning(soup):
+    posDict = ''
+    cardDict = []
+    explainTab = soup.find('div', class_='grp grp-tab-content-explanation tabsContent tab-content-explanation tabActived')
+    if explainTab != None:
+        ul = explainTab.ul
+        for li in ul.find_all('li'):
+            divIsPOS = li.find('div', class_=' tabs-pos_type fz-14')
+            spanIsMeaning = li.find('span', class_=' fz-14')
+            if divIsPOS != None:
+                if not isinstance(posDict, str):
+                    cardDict.append(posDict)
+                posString = '({})'.format(divIsPOS.get_text())
+                # print(posString)
+                posDict = dict(pos = posString, meaningArray = [])
+            elif spanIsMeaning != None:
+                exampleSentence = ''
+                if li.p != None:
+                    exampleSentence = li.p.span.get_text()
+                splitList = _unicode_chr_splitter(exampleSentence)    
+                englishPart = ''
+                chinesePart = ''
+                breakIdx = 0
+                for i in range(0, len(splitList)):
+                    if len(splitList[i]) > 0 and ord(splitList[i]) > 10000: 
+                        breakIdx = i
+                        break
+                for i in range(0, len(splitList)):
+                    if i < breakIdx:
+                        englishPart += splitList[i]
+                    else:
+                        chinesePart += splitList[i]
+                meaningDict = dict(meaning = spanIsMeaning.get_text(), english = englishPart, chinese = chinesePart)
+                posDict['meaningArray'].append(meaningDict)
+        cardDict.append(posDict)
+    else:
+        dictionaryWordCard = soup.find('div', class_ = 'dd cardDesign dictionaryWordCard sys_dict_word_card')
+        compList = dictionaryWordCard.find('div', class_ = 'compList mb-25 ml-25 p-rel')
+        if compList == None:
+            return None
+        else:
+            for li in compList.ul.find_all('li'):
+                pos = ''
+                posDiv = li.find('div', class_ = ' pos_button fz-14 fl-l mr-12')
+                if posDiv != None:
+                    pos = posDiv.get_text()
+                meaning = ''
+                meaningDiv = li.find('div', class_ = ' fz-16 fl-l dictionaryExplanation')
+                if meaningDiv != None:
+                    meaning = meaningDiv.get_text()
+                posDict = dict(pos = '({})'.format(pos), meaningArray = [])
+                meaningDict = dict(meaning = meaning, english = '', chinese = '')
+                posDict['meaningArray'].append(meaningDict)
+                cardDict.append(posDict)
+    return cardDict
+
+def fillInResult(cardDict, front_word, back_word):
+    result = {}
+    for pos in cardDict:
+        front_word += '{}<br>'.format(pos['pos'])
+        back_word += '{}<br>'.format(pos['pos'])
+        cnt = 1
+        for meaning in pos['meaningArray']:
+            front_word += '{}. {}<br>'.format(str(cnt), meaning['english'])
+            back_word  += '{}<br>{}<br>'.format(meaning['meaning'], meaning['chinese'])
+            cnt += 1
+    result['front_word'] = front_word
+    result['back_word'] = back_word
+    return result
 
 def LookUp(word, data, download_dir):
     # Eliminate the end of line delimiter
@@ -20,6 +131,18 @@ def LookUp(word, data, download_dir):
     
     content = urllib.request.urlopen(url).read()
     soup = BeautifulSoup(content, 'lxml')
+
+    wordUrl = wordUrl.replace('%20','-')
+    wordUrl = wordUrl.replace('%27','-')
+    wordUrl = wordUrl.replace('%28','-')
+    wordUrl = wordUrl.replace('%29','-')
+    wordUrl = wordUrl.replace('%2F','-')
+    wordUrl = wordUrl.replace('--','-')
+
+    url='https://dictionary.cambridge.org/us/dictionary/english/{}'.format(wordUrl)
+    content = urllib.request.urlopen(url).read()
+    CBSoup = BeautifulSoup(content, 'lxml')
+
     result = {}
     front_word = ''
     back_word = ''
@@ -27,53 +150,27 @@ def LookUp(word, data, download_dir):
     if word == '':
         return None
 
-    wrongSpelling = soup.find('div', class_='compText mb-15 fz-m fc-4th')
-    if wrongSpelling is not None:
+    print(' ')
+    print('<<' + word + '>>')
+    print(' ')
+
+    notFound = soup.find('div', class_ = 'dd cardDesign pt-25 pb-25 pl-120 pr-120 sys_dict_zrp')
+    if notFound != None:
+        print(' ')
+        print('<< word not found!!! >>')
+        print(' ')
         return None
 
-    print(' ')
-    print('<<'+word+'>>')
-    print(' ')
-# Get the URL of the sound media
-    soup_result = soup.find('span', id='iconStyle')
-    if soup_result is not None and bool(download_dir) != False:
-        sound = json.loads(soup_result.get_text())
-        if sound is not None and sound['sound_url_1'] is not None:
-            # Download the sound media and store at the specific directory (%username%/collection.media) and with a specific file name (Py_%word%.mp3)
-            for soundCnt in range(0,len(sound['sound_url_1'])):
-                if bool(sound['sound_url_1'][soundCnt]) == True :
-                    try:
-                        urllib.request.urlretrieve(sound['sound_url_1'][soundCnt]['mp3'], download_dir+'Py_'+word+'.mp3')
-                        front_word += '[sound:Py_'+word+'.mp3]'
-                        break
-                    except urllib.error.HTTPError as err:
-                        print('HTTP Error=', err)
-    # Insert the sound media into the card
-    front_word += word + '<br>'
-
-    explain = soup.find('div', class_='explain')
-    partOfSpeech = explain.find_all('div', class_='compTitle')
-
-    # POScont => the content of part of speech
-    POScont = explain.find_all('ul', class_='compArticleList')
-
-    for i in range(0,len(POScont)):
-        cnt = 1
-        if len(partOfSpeech) == 0:
-            POSclean = ''
-        else:
-            POSclean = '(' + partOfSpeech[i].get_text().split('.')[0] + '.)' + '<br>'
-        front_word += POSclean
-        for j in POScont[i].find_all('span', id='example', class_='example'):
-            front_word += str(cnt) + '. '
-            for k in range(0,len(j.contents)-1):
-                front_word += j.contents[k].string
-            front_word += '<br>'
-            cnt = cnt + 1
-        back_word += POSclean
-        for j in POScont[i].find_all('h4'):
-            back_word += j.get_text() + '<br>'
-    result['front_word'] = front_word
-    result['back_word'] = back_word
-
+    front_word = getRealWord(soup, front_word)
+    front_word = getCBSound(CBSoup, front_word, word, download_dir)
+    # front_word = getSound(soup, front_word, word, download_dir)
+    cardDict = getMeaning(soup)
+    if cardDict == None:
+        print(' ')
+        print('<< meaning not found!!! >>')
+        print(' ')
+        return None
+    result = fillInResult(cardDict, front_word, back_word)
+    
+    print(result)
     return result

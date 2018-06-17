@@ -9,7 +9,6 @@ import datetime
 import json
 import re
 import math
-from pyquery import PyQuery as pq
 from hanziconv import HanziConv # https://pypi.python.org/pypi/hanziconv/0.2.1
 from re import compile as _Re
 
@@ -83,9 +82,9 @@ def getPartOfSpeechBlock(soup, sentenceCnt, front_word, back_word):
 def getMeaning(soup):           # list
     output = []
     for dd in soup.find_all('dd'):
-        h3 = dd.find('h3')
-        if h3 != None:
-            meaning = h3.get_text()
+        pContent = dd.find_all('p')
+        if pContent[1] != None:
+            meaning = pContent[1].get_text()
             meaning = meaning.replace(chr(32), '')
             meaning = meaning.replace(chr(10), '')
             output.append(meaning)
