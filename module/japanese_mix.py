@@ -81,7 +81,10 @@ def getForvoSound(soup, download_dir, word):
         if spanPlay != None and spanOfLink != None:
             spanOnClick = spanPlay['onclick']
             soundUrl = getSoundUrl(spanOnClick)
-            author = spanOfLink['data-p2']
+            if spanOfLink.get('data-p2'):
+                author = spanOfLink['data-p2']
+            else:
+                author = ''
             authorList.append(author)
             soundUrlList.append(soundUrl)
     finalAuthor = ''
@@ -184,6 +187,7 @@ def LookUp(word, data, download_dir):
     
     Forvo_Soup = BeautifulSoup('<tag>123</tag>', 'lxml')
     Forvo_Url = 'https://forvo.com/word/{}/#ja'.format(wordUrlEncode)
+    ForvoNotFound = False
     try:
         Forvo_Content = urllib.request.urlopen(Forvo_Url).read()
         Forvo_Soup = BeautifulSoup(Forvo_Content, 'lxml')
@@ -191,13 +195,16 @@ def LookUp(word, data, download_dir):
         print(' ')
         print('<< Forvo word not found!!! >>')
         print(' ')
-        return None
+        ForvoNotFound = True
 
     wordDetailsContent = hj_Soup.find('section', class_ = 'word-details-content')
     if wordDetailsContent != None:
         for wordDetailsPane in wordDetailsContent.find_all('div', class_ = 'word-details-pane'):
             word = getWord(wordDetailsPane)
-            front_word += getForvoSound(Forvo_Soup, download_dir, word) + word + '<br>'
+            if ForvoNotFound:
+                front_word += word + '<br>'
+            else:
+                front_word += getForvoSound(Forvo_Soup, download_dir, word) + word + '<br>'
             detailGroups = wordDetailsPane.find('section', class_ = 'detail-groups')
             if detailGroups != None:
                 for posSoup in detailGroups.find_all('dl'):
