@@ -19,20 +19,20 @@ def getVerb(tr, typeArray, front_word, download_dir):
     back_word = ''
     
     for typeStr in typeArray:
-        typeTd = tr.find('td', class_='katsuyo katsuyo_' + typeStr + '_js')
+        typeTd = tr.find('td', class_='katsuyo katsuyo_{}_js'.format(typeStr))
         accentedWord = typeTd.find('span', class_='accented_word')
         if accentedWord != None:
             soundDiv = typeTd.find('div', class_='katsuyo_proc_button clearfix')
             soundStr = soundDiv.find('a', class_='katsuyo_proc_female_button js_proc_female_button')['id']
             # 把數字後兩位數截掉 前面加兩個0 再取後三位
-            soundStrNum = ('00' + str(math.floor(int(soundStr[0:soundStr.find('_')])/100)))[-3:]
-            soundUrl = 'http://www.gavo.t.u-tokyo.ac.jp/ojad/sound4/mp3/female/'+soundStrNum+'/'+soundStr+'.mp3'
+            soundStrNum = ('00{}'.format(str(math.floor(int(soundStr[0:soundStr.find('_')])/100))))[-3:]
+            soundUrl = 'http://www.gavo.t.u-tokyo.ac.jp/ojad/sound4/mp3/female/{}/{}.mp3'.format(soundStrNum, soundStr)
             try:
-                urllib.request.urlretrieve(soundUrl, download_dir + soundStr + '.mp3')
-                front_word += '[sound:'+soundStr+'.mp3]'
+                urllib.request.urlretrieve(soundUrl, '{}{}.mp3'.format(download_dir, soundStr))
+                front_word += '[sound:{}.mp3]'.format(soundStr)
             except urllib.error.HTTPError as err:
                 print('OJAD_err=', err)
-            front_word += accentedWord.get_text() + '<br>'
+            front_word += '{}<br>'.format(accentedWord.get_text())
     result['front_word'] = front_word
     return result
 
@@ -41,21 +41,21 @@ def getJishoMasu(tr, jisho_masu, front_word, download_dir):
 
     jisho_masuCnt = 0
     for typeStr in ['jisho', 'masu']:
-        typeTd = tr.find('td', class_='katsuyo katsuyo_' + typeStr + '_js')
+        typeTd = tr.find('td', class_='katsuyo katsuyo_{}_js'.format(typeStr))
         soundDiv = typeTd.find('div', class_='katsuyo_proc_button clearfix')
         if soundDiv != None:
             femaleButton = soundDiv.find('a', class_='katsuyo_proc_female_button js_proc_female_button')
             if femaleButton != None:
                 soundStr = femaleButton['id']
                 # 把數字後兩位數截掉 前面加兩個0 再取後三位
-                soundStrNum = ('00' + str(math.floor(int(soundStr[0:soundStr.find('_')])/100)))[-3:]
-                soundUrl = 'http://www.gavo.t.u-tokyo.ac.jp/ojad/sound4/mp3/female/'+soundStrNum+'/'+soundStr+'.mp3'
+                soundStrNum = ('00{}'.format(str(math.floor(int(soundStr[0:soundStr.find('_')])/100))))[-3:]
+                soundUrl = 'http://www.gavo.t.u-tokyo.ac.jp/ojad/sound4/mp3/female/{}/{}.mp3'.format(soundStrNum, soundStr)
                 try:
-                    urllib.request.urlretrieve(soundUrl, download_dir + soundStr + '.mp3')
-                    front_word += '[sound:'+soundStr+'.mp3]'
+                    urllib.request.urlretrieve(soundUrl, '{}{}.mp3'.format(download_dir, soundStr))
+                    front_word += '[sound:{}.mp3]'.format(soundStr)
                 except urllib.error.HTTPError as err:
                     print('OJAD_err=', err)
-                front_word += jisho_masu.split('・')[jisho_masuCnt] + '<br>'
+                front_word += '{}<br>'.format(jisho_masu.split('・')[jisho_masuCnt])
                 jisho_masuCnt += 1
     return front_word
 
@@ -71,15 +71,15 @@ def getPartOfSpeechBlock(soup, sentenceCnt, front_word, back_word):
         front_word += '(' + pos + ')<br>'
         back_word += '(' + pos + ')<br>'
         # print(pos)
-    meaning = getMeaning(soup)                              # list
-    exampleSentence = getExampleSentence(soup, sentenceCnt) # dict
+    meaning = getMeaning(soup)                             
+    exampleSentence = getExampleSentence(soup, sentenceCnt) 
     print('exampleSentence', exampleSentence)
     for i in range(0, len(meaning)):
-        front_word += str(i+1) + '. ' + exampleSentence['JP'][i] + '<br>'
-        back_word += str(i+1) + '. ' + meaning[i] + '<br>' + exampleSentence['CH'][i] + '<br>'
+        front_word += '{}. {}<br>'.format(str(i+1), exampleSentence['JP'][i])
+        back_word += '{}. {}<br>{}<br>'.format(str(i+1), meaning[i], exampleSentence['CH'][i])
     return {'front_word': front_word, 'back_word': back_word}
 
-def getMeaning(soup):           # list
+def getMeaning(soup):
     output = []
     for dd in soup.find_all('dd'):
         pContent = dd.find_all('p')
@@ -91,7 +91,7 @@ def getMeaning(soup):           # list
     # print(output)
     return output
 
-def getExampleSentence(soup, sentenceCnt):   # dict
+def getExampleSentence(soup, sentenceCnt):
     output = {}
     output['JP'] = []
     output['CH'] = []
@@ -154,12 +154,16 @@ def LookUp(word, data, download_dir):
         return None
     
     print(' ')
-    print('<<' + word + '>>')
+    print('<< {} >>'.format(word))
     print(' ')
 
     searchResult = ojad_Soup.find('div', id='search_result')
     table = searchResult.find('table', id='word_table', class_='draggable')
-
+    if table == None:
+        print(' ')
+        print('<< OJAD word not found !!! >>')
+        print(' ')
+        return None
     tbody = table.find('tbody')
     tbodyTr = tbody.find('tr') # The default value of tbodyTr is the first row (first <tr>)  
     for tbodyTrIter in tbody.find_all('tr'):
@@ -194,7 +198,7 @@ def LookUp(word, data, download_dir):
         return result
     elif hj_Soup.find('div', class_ = 'word-suggestions') != None:
         print(' ')
-        print('<< Word not found!!! >>')
+        print('<< HJ Word not found!!! >>')
         print(' ')
         return None
 
