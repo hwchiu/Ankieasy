@@ -33,9 +33,9 @@ def getPartOfSpeechBlock(soup, sentenceCnt, front_word, back_word):
         pos = HanziConv.toTraditional(pos)
         front_word += '(' + pos + ')<br>'
         back_word += '(' + pos + ')<br>'
-    meaning = getMeaning(soup)                              # list
-    exampleSentence = getExampleSentence(soup, sentenceCnt) # dict
-    print(exampleSentence)
+    meaning = getMeaning(soup)
+    exampleSentence = getExampleSentence(soup, sentenceCnt)
+    # print(exampleSentence)
     for i in range(0, len(meaning)):
         front_word += str(i+1) + '. ' + exampleSentence['JP'][i] + '<br>'
         back_word += str(i+1) + '. ' + meaning[i] + '<br>' + exampleSentence['CH'][i] + '<br>'
@@ -69,6 +69,12 @@ def getForvoSound(soup, download_dir, word):
                     if article.find('header').find('em')['id'] == 'ja':
                         articleJP = article
                         break
+    if articleJP == '':
+        print(' ')
+        print('<< Forvo Japanese pronunciation not found!!! >>')
+        print(' ')
+        return ''
+        
     ul = articleJP.find('ul')
     liGroup = ul.find_all('li')
     authorList = []
@@ -212,6 +218,9 @@ def LookUp(word, data, download_dir):
                     front_word = frontAndBack['front_word']
                     back_word = frontAndBack['back_word']
             differentWord += 1
+            print(' ')
+            print('<< {} >>'.format(word))
+            print(' ')
             print('front_word', front_word)
             print('back_word', back_word)
         result['front_word'] = front_word

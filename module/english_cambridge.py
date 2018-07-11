@@ -48,10 +48,10 @@ def LookUp(word, data, download_dir):
     englishTab = entryBox.find('div', id = 'dataset-american-english')
     if englishTab is None:
         englishTab = entryBox.find('div', id = 'dataset-british')
-    elif englishTab is None:
-        englishTab = entryBox.find('div', id = 'dataset-business-english')
-    elif englishTab is None:
-        return None
+        if englishTab is None:
+            englishTab = entryBox.find('div', id = 'dataset-business-english')
+            if englishTab is None:
+                return None
     
     partOfSpeech = englishTab.find_all('div', class_='entry-body__el clrd js-share-holder')
     for i in range(0,len(partOfSpeech)):

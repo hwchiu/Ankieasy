@@ -23,6 +23,9 @@ def getCBSound(soup, front_word, word, download_dir):
         return front_word
 
     partOfSpeech = tabEntry.find_all('div', class_='entry-body__el clrd js-share-holder')
+    if len(partOfSpeech) == 0:
+        print("<< CBSound Not Found !!! >>")
+        return front_word
     sound = partOfSpeech[0].find('span', attrs={'data-src-mp3':True})
 
     if sound is not None and bool(download_dir) != False:
