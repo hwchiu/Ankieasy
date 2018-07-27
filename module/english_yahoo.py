@@ -17,20 +17,20 @@ def getRealWord(soup, front_word):
     return front_word
 
 def getCBSound(soup, front_word, word, download_dir):
-    tabEntry = soup.find('div', class_ = 'entrybox english')
+    tabEntry = soup.find('div', class_ = 'entrybox')
     if tabEntry is None:
-        print("<< CBSound Not Found !!! >>")
+        print("<< CBSound Not Found !!! (entrybox not found) >>")
         return front_word
 
     partOfSpeech = tabEntry.find_all('div', class_='entry-body__el clrd js-share-holder')
     if len(partOfSpeech) == 0:
-        print("<< CBSound Not Found !!! >>")
+        print("<< CBSound Not Found !!! (entry-body__el clrd js-share-holder not found)>>")
         return front_word
     sound = partOfSpeech[0].find('span', attrs={'data-src-mp3':True})
 
     if sound is not None and bool(download_dir) != False:
         try:
-            urllib.request.urlretrieve(sound['data-src-mp3'], '{}Py_{}.mp3'.format(download_dir, word))
+            urllib.request.urlretrieve('https://dictionary.cambridge.org{}'.format(sound['data-src-mp3']), '{}Py_{}.mp3'.format(download_dir, word))
             front_word = '[sound:Py_{}.mp3]'.format(word) + front_word
         except urllib.error.HTTPError as err:
             print("HTTP Error:", err)
