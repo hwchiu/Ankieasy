@@ -52,7 +52,7 @@ def getSound(soup, front_word, word, download_dir):
     return front_word
 
 def getMeaning(soup):
-    posDict = ''
+    posDict = dict(meaningArray = [])
     cardDict = []
     explainTab = soup.find('div', class_='grp grp-tab-content-explanation tabsContent tab-content-explanation tabActived')
     if explainTab != None:
@@ -61,10 +61,9 @@ def getMeaning(soup):
             divIsPOS = li.find('div', class_=' tabs-pos_type fz-14')
             spanIsMeaning = li.find('span', class_=' fz-14')
             if divIsPOS != None:
-                if not isinstance(posDict, str):
+                if not isinstance(posDict, str): # Check whether the type of posDict is str or not
                     cardDict.append(posDict)
                 posString = '({})'.format(divIsPOS.get_text())
-                # print(posString)
                 posDict = dict(pos = posString, meaningArray = [])
             elif spanIsMeaning != None:
                 exampleSentence = ''
@@ -110,8 +109,9 @@ def getMeaning(soup):
 def fillInResult(cardDict, front_word, back_word):
     result = {}
     for pos in cardDict:
-        front_word += '{}<br>'.format(pos['pos'])
-        back_word += '{}<br>'.format(pos['pos'])
+        if 'pos' in pos: # Check whether there is a key called 'pos' in this dict
+            front_word += '{}<br>'.format(pos['pos'])
+            back_word += '{}<br>'.format(pos['pos'])
         cnt = 1
         for meaning in pos['meaningArray']:
             front_word += '{}. {}<br>'.format(str(cnt), meaning['english'])
