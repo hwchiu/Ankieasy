@@ -42,16 +42,14 @@ def LookUp(word, data, download_dir):
     if word == '':
         return None
 
-    entryBox = soup.find('div', class_ = 'entrybox english')
+    entryBox = soup.find('div', class_ = 'entrybox')
     if entryBox is None:
         return None
-    englishTab = entryBox.find('div', id = 'dataset-american-english')
+    englishTab = entryBox.find('div', id = 'dataset-cacd')
     if englishTab is None:
-        englishTab = entryBox.find('div', id = 'dataset-british')
+        englishTab = entryBox.find('div', id = 'dataset-cald4')
         if englishTab is None:
-            englishTab = entryBox.find('div', id = 'dataset-business-english')
-            if englishTab is None:
-                return None
+            return None
     
     partOfSpeech = englishTab.find_all('div', class_='entry-body__el clrd js-share-holder')
     for i in range(0,len(partOfSpeech)):
@@ -59,7 +57,7 @@ def LookUp(word, data, download_dir):
 
         if sound is not None and bool(download_dir) != False:
             try:
-                urllib.request.urlretrieve(sound['data-src-mp3'], download_dir+'Py_'+word+'.mp3')
+                urllib.request.urlretrieve('https://dictionary.cambridge.org{}'.format(sound['data-src-mp3']), download_dir+'Py_'+word+'.mp3')
                 front_word = '[sound:Py_'+word+'.mp3]' + front_word
             except urllib.error.HTTPError as err:
                 print("HTTP Error:", err)
@@ -90,9 +88,11 @@ def LookUp(word, data, download_dir):
 
                 # example sentence
                 defBody = defBlock[k].find('span', class_='def-body')
-                if defBody is not None:
-                    exampleSentence = defBody.find('span', class_='eg').get_text() # get example sentence
-                    front_word += exampleSentence
+                if defBody != None:
+                    eg = defBody.find('span', class_='eg')
+                    if eg != None:
+                        exampleSentence = eg.get_text() # get the example sentence
+                        front_word += exampleSentence
                 front_word += '<br>'
                 cnt += 1
 
@@ -101,8 +101,9 @@ def LookUp(word, data, download_dir):
 
     result['front_word'] = front_word
     result['back_word'] = back_word
-    print('<<<'+word+'>>>'+'\n')
-    print('front_word = '+'\n'+front_word)
-    print('back_word = '+'\n'+back_word)
-    print('-----------------------------------------')
+    print(' ')
+    print('<< {} >>'.format(word))
+    print(' ')
+    print('front_word', front_word)
+    print('back_word', back_word)
     return result
